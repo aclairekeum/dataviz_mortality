@@ -55,7 +55,7 @@ function run () {
 	.style("text-anchor","middle")
 	.text("loading data...");
 
-    getData("",function(data) {
+    getData(function(data) {
 	GLOBAL.data = data;
 	createCausesView(data);
 	createGendersView(data);
@@ -82,11 +82,6 @@ function sumTotal (data, pred) {
 function sumTotalByCauseYear (data,c,y)  {
     return sumTotal(data,
 		    function(r) { return r.cause===c && r.year===y; });
-}
-
-function sumTotalByEducationYear (data,c,y)  {
-    return sumTotal(data,
-		    function(r) { return r.education===c && r.year===y; });
 }
 
 function sumTotalByGenderYear (data,g,y)  {
