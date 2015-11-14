@@ -26,6 +26,9 @@ def pullData ():
     cur = conn.cursor()
 
     try: 
+        # cur.execute("""SELECT year, Cause_Recode_39, sex, SUM(1) as total 
+        #                FROM mortality
+        #                GROUP BY year, Cause_Recode_39, sex""")
         cur.execute("""SELECT year, Cause_Recode_39, sex, SUM(1) as total 
                        FROM mortality
                        GROUP BY year, Cause_Recode_39, sex""")
