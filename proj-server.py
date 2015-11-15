@@ -27,7 +27,9 @@ def pullData ():
     try: 
         cur.execute("""SELECT year, sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
-                       GROUP BY year, sex, Month_Of_Death, Education""")
+                       WHERE Month_Of_Death < 13 AND Education!=99
+                       GROUP BY year, sex, Month_Of_Death, Education
+                       """)#
         data = [{"year":int(year),
                  "gender":sex,
                  "education": education,
@@ -37,12 +39,12 @@ def pullData ():
 
         genders = list(set([r["gender"] for r in data]))
         months = list(set([int(r["month"]) for r in data]))
-        education = list(set([r["education"] for i in data]))
+        educations = list(set([r["education"] for r in data]))
 
         return {"data":data, 
                 "genders":genders,
-                "month": month,
-                "education": education}
+                "month": months,
+                "educations": educations}
 
     except: 
         print "ERROR!!!"
