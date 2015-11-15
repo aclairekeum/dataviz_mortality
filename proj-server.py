@@ -39,31 +39,45 @@ def pullData ():
 
         # causes = list(set([int(r["cause"]) for r in data]))
 
-        cur.execute("""SELECT Cause_Recode_39, Age_Value, Manner_Of_Death,
-           Method_Of_Disposition, Place_Of_Death, Place_Of_Causal_Injury, Education, SUM(1) as total 
-                       FROM mortality
-                       GROUP BY Age_Value """)
-                       #ORDER by COUNT(Cause_Recode_39) desc 
-                       #limit 85
+        # cur.execute("""SELECT Cause_Recode_39, Age_Value, Manner_Of_Death,
+        #    Method_Of_Disposition, Place_Of_Death, Place_Of_Causal_Injury, Education, SUM(1) as total 
+        #                FROM mortality
+        #                GROUP BY Age_Value """)
+        #                #ORDER by COUNT(Cause_Recode_39) desc 
+        #                #limit 85
                       
-        data = [{##"year":int(year),
-                 "cause":int(cause),
-                "age": int(age),
-                "manner": str(manner),
-                "method": str(method),
-                "place": str(place),
-                "injury": str(injury),
-                 ## "gender":sex,
-                 "total":total} for (cause, age, manner, method, place, injury, total,) in  cur.fetchall()]
-        conn.close()
+        # data = [{##"year":int(year),
+        #          "cause":int(cause),
+        #         "age": int(age),
+        #         "manner": str(manner),
+        #         "method": str(method),
+        #         "place": str(place),
+        #         "injury": str(injury),
+        #          ## "gender":sex,
+        #          "total":total} for (cause, age, manner, method, place, injury, total,) in  cur.fetchall()]
+        # conn.close()
 
         #causes = list(set([int(r["cause"]) for r in data]))
 
         ##genders = list(set([r["gender"] for r in data]))
 
+        cur.execute("""SELECT year, Cause_Recode_39, Month_Of_Death, SUM(1) as total 
+                       FROM mortality
+                       GROUP BY year, Cause_Recode_39, Month_Of_Death""")
+        data = [{"year":int(year),
+                 "cause":int(cause),
+                "month": month,
+                 ## "gender":sex,
+                 "total":total} for (year, cause, month, total,) in  cur.fetchall()]
+        conn.close()
+
+        causes = list(set([int(r["cause"]) for r in data]))
+        months = list(set([int(r["month"]) for r in data]))
+
         return {"data":data, 
                 ##"genders":genders,
-               # "causes":causes,
+                "causes":causes,
+                "months":months
                }
 
     except: 
