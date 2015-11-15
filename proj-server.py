@@ -26,21 +26,45 @@ def pullData ():
     cur = conn.cursor()
 
     try: 
-        cur.execute("""SELECT year, Cause_Recode_39, sex, SUM(1) as total 
+        # First Question - Average Age by Cause of Death, Year
+        # cur.execute("""SELECT year, Cause_Recode_39, avg(Age_Value), SUM(1) as total 
+        #                FROM mortality
+        #                GROUP BY year, Cause_Recode_39""")
+        # data = [{"year":int(year),
+        #          "cause":int(cause),
+        #         "avg": int(avg),
+        #          ## "gender":sex,
+        #          "total":total} for (year, cause, avg, total,) in  cur.fetchall()]
+        # conn.close()
+
+        # causes = list(set([int(r["cause"]) for r in data]))
+
+        cur.execute("""SELECT Cause_Recode_39, Age_Value, Manner_Of_Death,
+           Method_Of_Disposition, Place_Of_Death, Place_Of_Causal_Injury, Education, SUM(1) as total 
                        FROM mortality
-                       GROUP BY year, Cause_Recode_39, sex""")
-        data = [{"year":int(year),
+                       GROUP BY Age_Value """)
+                       #ORDER by COUNT(Cause_Recode_39) desc 
+                       #limit 85
+                      
+        data = [{##"year":int(year),
                  "cause":int(cause),
-                 "gender":sex,
-                 "total":total} for (year, cause, sex, total,) in  cur.fetchall()]
+                "age": int(age),
+                "manner": str(manner),
+                "method": str(method),
+                "place": str(place),
+                "injury": str(injury),
+                 ## "gender":sex,
+                 "total":total} for (cause, age, manner, method, place, injury, total,) in  cur.fetchall()]
         conn.close()
 
-        causes = list(set([int(r["cause"]) for r in data]))
-        genders = list(set([r["gender"] for r in data]))
+        #causes = list(set([int(r["cause"]) for r in data]))
+
+        ##genders = list(set([r["gender"] for r in data]))
 
         return {"data":data, 
-                "genders":genders,
-                "causes":causes}
+                ##"genders":genders,
+               # "causes":causes,
+               }
 
     except: 
         print "ERROR!!!"
