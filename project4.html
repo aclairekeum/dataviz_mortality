@@ -23,7 +23,7 @@
       </svg>
       <svg id="viz-genders" width="500" height="300" style=" display:inline-block;">
       </svg>
-      <svg id="viz-education" width="500" height="300" style=" display:inline-block;">
+      <svg id="viz-education" width="500" height="500" style=" display:inline-block;">
       </svg>
     </div>
 
@@ -34,10 +34,6 @@
  * Demo: Mortality 2008/2013
  * 
  */
-
-
-
-
 
 
 // Call run when the page finishes loading
@@ -120,7 +116,18 @@ function updateMonthView (data) {
 
 function createEduView (data) {
 
-   //Add create MonthView
+   var svg = d3.select("#viz-education");
+
+    svg.append("text")
+	.attr("x",+svg.attr("width")/2)
+	.attr("y",20)
+	.attr("dy","0.35em")
+	.style("text-anchor","middle")
+	.style("font-family","sans-serif")
+	.style("font-size","20pt")
+	.text("Genders");
+
+    updateEduView(data);
 
 }
 
@@ -216,8 +223,6 @@ function updateGendersView (data,cause) {
 	.attr("x",function(d) { return d.x; })
 	.attr("y",function(d) { return d.y; })
 	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
-
-
 }
 
 

@@ -25,57 +25,29 @@ def pullData ():
     cur = conn.cursor()
 
     try: 
-        cur.execute("""SELECT year, Cause_Recode_39, sex, Month_Of_Death, Education, SUM(1) as total 
+        cur.execute("""SELECT year, sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
                        GROUP BY year, Cause_Recode_39, sex""")
         data = [{"year":int(year),
                  "cause":int(cause),
                  "gender":sex,
-                 "education": 
+                 "education": education,
                  "total":total} for (year, cause, sex, month, education, total,) in  cur.fetchall()]
         conn.close()
 
-        causes = list(set([int(r["cause"]) for r in data]))
         genders = list(set([r["gender"] for r in data]))
+        months = list(set([int(r["month"]) for r in data]))
         education = list(set([r["education"] for i in data]))
 
         return {"data":data, 
                 "genders":genders,
-                "causes":causes}
+                "month": month,
+                "education": education}
 
     except: 
         print "ERROR!!!"
         conn.close()
         raise
-
-# def monthOfDeath():
-#     conn = sqlite3.connect(MORTALITYDB)
-#     cur = conn.cursor()
-
-#     try:
-#         cur.execute("""SELECT year, Cause_Recode_39, Month_Of_Death, SUM(1) as total 
-#                            FROM mortality
-#                            GROUP BY year, Cause_Recode_39, Month_Of_Death""")
-#         data = [{"year":int(year),
-#                  "cause":int(cause),
-#                 "month": month,
-#                  ## "gender":sex,
-#                  "total":total} for (year, cause, month, total,) in  cur.fetchall()]
-#         conn.close()
-
-#         causes = list(set([int(r["cause"]) for r in data]))
-#         months = list(set([int(r["month"]) for r in data]))
-
-#         return {"data":data, 
-#                 ##"genders":genders,
-#                 "causes":causes,
-#                 "months":months
-#                }
-
-#     except: 
-#         print "ERROR!!!"
-#         conn.close()
-#         raise
 
 # First Question - Average Age by Cause of Death, Year
 def getAvgAgeFromCause():
