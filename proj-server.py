@@ -27,13 +27,13 @@ def pullData ():
     try: 
         cur.execute("""SELECT year, sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
-                       WHERE Month_Of_Death < 13 AND Education!=99
+                       WHERE Month_Of_Death AND Education!=99
                        GROUP BY year, sex, Month_Of_Death, Education
                        """)#
         data = [{"year":int(year),
                  "gender":sex,
                  "education": education,
-                 "month": month,
+                 "month": month[1:3], #makedb is reading extra bits before/after so-
                  "total":total} for (year, sex, month, education, total,) in  cur.fetchall()]
         conn.close()
 
