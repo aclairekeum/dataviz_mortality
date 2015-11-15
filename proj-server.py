@@ -19,52 +19,40 @@ from json import dumps
 
 
 MORTALITYDB = "mortality.db"
-
-
 def pullData ():
     conn = sqlite3.connect(MORTALITYDB)
     cur = conn.cursor()
 
     try: 
-
-        # First Question - Average Age by Cause of Death, Year
-        # cur.execute("""SELECT year, Cause_Recode_39, avg(Age_Value), SUM(1) as total 
-        #                FROM mortality
-        #                GROUP BY year, Cause_Recode_39""")
-        # data = [{"year":int(year),
-        #          "cause":int(cause),
-        #         "avg": int(avg),
-        #          ## "gender":sex,
-        #          "total":total} for (year, cause, avg, total,) in  cur.fetchall()]
-        # conn.close()
-
-        # causes = list(set([int(r["cause"]) for r in data]))
-
-        # cur.execute("""SELECT Cause_Recode_39, Age_Value, Manner_Of_Death,
-        #    Method_Of_Disposition, Place_Of_Death, Place_Of_Causal_Injury, Education, SUM(1) as total 
-        #                FROM mortality
-        #                GROUP BY Age_Value """)
-        #                #ORDER by COUNT(Cause_Recode_39) desc 
-        #                #limit 85
-                      
-        # data = [{##"year":int(year),
-        #          "cause":int(cause),
-        #         "age": int(age),
-        #         "manner": str(manner),
-        #         "method": str(method),
-        #         "place": str(place),
-        #         "injury": str(injury),
-        #          ## "gender":sex,
-        #          "total":total} for (cause, age, manner, method, place, injury, total,) in  cur.fetchall()]
-        # conn.close()
-
-        #causes = list(set([int(r["cause"]) for r in data]))
-
-        ##genders = list(set([r["gender"] for r in data]))
-
-        cur.execute("""SELECT year, Cause_Recode_39, Month_Of_Death, SUM(1) as total 
+        cur.execute("""SELECT year, Cause_Recode_39, sex, SUM(1) as total 
                        FROM mortality
-                       GROUP BY year, Cause_Recode_39, Month_Of_Death""")
+                       GROUP BY year, Cause_Recode_39, sex""")
+        data = [{"year":int(year),
+                 "cause":int(cause),
+                 "gender":sex,
+                 "total":total} for (year, cause, sex, total,) in  cur.fetchall()]
+        conn.close()
+
+        causes = list(set([int(r["cause"]) for r in data]))
+        genders = list(set([r["gender"] for r in data]))
+
+        return {"data":data, 
+                "genders":genders,
+                "causes":causes}
+
+    except: 
+        print "ERROR!!!"
+        conn.close()
+        raise
+
+def monthOfDeath():
+    conn = sqlite3.connect(MORTALITYDB)
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""SELECT year, Cause_Recode_39, Month_Of_Death, SUM(1) as total 
+                           FROM mortality
+                           GROUP BY year, Cause_Recode_39, Month_Of_Death""")
         data = [{"year":int(year),
                  "cause":int(cause),
                 "month": month,
@@ -86,14 +74,71 @@ def pullData ():
         conn.close()
         raise
 
+# First Question - Average Age by Cause of Death, Year
+def getAvgAgeFromCause():
+    conn = sqlite3.connect(MORTALITYDB)
+    cur = conn.cursor()
 
+    try: 
+        
+        cur.execute("""SELECT year, Cause_Recode_39, avg(Age_Value)
+                       FROM mortality
+                       GROUP BY year, Cause_Recode_39""")
+        data = [{"year":int(year),
+                 "cause":int(cause),
+                "avg": int(avg)
+                } for (year, cause, avg,) in  cur.fetchall()]
+        conn.close()
+
+        # causes = list(set([int(r["cause"]) for r in data]))
+
+        return {"data":data}
+
+    except: 
+        print "ERROR!!!"
+        conn.close()
+        raise
+
+# Second Question - Top Cause of death for each age, and each year.
+def getMaxCauseForAge():
+    conn = sqlite3.connect(MORTALITYDB)
+    cur = conn.cursor()
+    try: 
+        cur.execute("""SELECT year, Cause_Recode_39, MAX(ct_death),Age_Value
+                        FROM (
+                            SELECT year, Cause_Recode_39, Age_Value, Count(Cause_Recode_39) as ct_death
+                            FROM mortality
+                            GROUP BY year, Cause_Recode_39, Age_Value
+                            )
+                        GROUP BY Age_Value, year
+                        ORDER BY Age_Value, ct_death desc""")
+
+        data = [{"year":int(year),
+                 "cause":int(cause),
+                 "maxDeath": maxNum,
+                 "age":Age} for (year, cause, maxNum, Age,) in  cur.fetchall()]
+        conn.close()
+        return {"data":data}
+
+    except: 
+        print "ERROR!!!"
+        conn.close()
+        raise
         
 # get all data
     
-@get("/data")
+@get('/text/<number>')
+def textdata (number):
+    if number =="one":
+        return getAvgAgeFromCause()
+    elif number =="two":
+        return getMaxCauseForAge()
+    else:
+        return "no such numbers"
+       
+@get('/data')
 def data ():
     return pullData()
-
     
 @get('/<name>')
 def static (name="index.html"):
