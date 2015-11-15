@@ -27,12 +27,12 @@ def pullData ():
     try: 
         cur.execute("""SELECT year, sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
-                       GROUP BY year, Cause_Recode_39, sex""")
+                       GROUP BY year, sex, Month_Of_Death, Education""")
         data = [{"year":int(year),
-                 "cause":int(cause),
                  "gender":sex,
                  "education": education,
-                 "total":total} for (year, cause, sex, month, education, total,) in  cur.fetchall()]
+                 "month": month,
+                 "total":total} for (year, sex, month, education, total,) in  cur.fetchall()]
         conn.close()
 
         genders = list(set([r["gender"] for r in data]))
