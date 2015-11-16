@@ -4,7 +4,7 @@
   <head>
     
     <meta charset="utf-8">
-    <title>Mortality Demo</title>
+    <title>Mortality Visualization</title>
 
     <!-- load D3 library -->
 
@@ -55,6 +55,7 @@ function run () {
 
     getData(function(data) {
 	GLOBAL.data = data;
+	console.log(data.data.month);
 	createMonthView(data);
 	createGendersView(data);
 	createEduView(data);
@@ -153,6 +154,7 @@ function updateGendersView (data,cause) {
     var genders = data.genders;
     var data = data.data;
 
+    console.log(data.months);
     // if a cause is supplied, then filter by that cause
     // otherwise, show all causes
 
@@ -278,7 +280,7 @@ var EDUCATION = {
 	"15": "3 years of college",
 	"16": "4 years of college",
 	"17": "5 or more years of college",
-	"99": "Not stated"
+	"99": "Not stated",
 	"": "Not on certificate"
 }
 
@@ -327,7 +329,31 @@ var EDUCATION = {
 //     "42":"All other external causes (Y10-Y36,Y87.2,Y89)"
 // }
     
-
+var testData = {
+	"data": [
+		{
+		gender: "M",
+		education: "00",
+		month: 1},
+		{
+		gender: "F",
+		education: "10",
+		month: 4},
+		{
+		gender: "M",
+		education: "04",
+		month: 7},
+	],
+	"months": {
+		[1,2,3,4,5,6,7,8,9,10,11,12]
+	},
+	"educations":{
+		["00","01","02","03","04"]
+	},
+	"genders":{
+		["M", "F"]
+	}
+}
 /*
  * Pulls the data
  * 
