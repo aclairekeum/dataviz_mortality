@@ -25,25 +25,25 @@ def pullData ():
     cur = conn.cursor()
 
     try: 
-        cur.execute("""SELECT year, sex, Month_Of_Death, Education, SUM(1) as total 
+        cur.execute("""SELECT sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
-                       WHERE Month_Of_Death AND Education!=99
-                       GROUP BY year, sex, Month_Of_Death, Education
+                       WHERE Education!=99
+                       GROUP BY sex, Month_Of_Death, Education
                        """)#
-        data = [{"year":int(year),
+        data = [{
                  "gender":sex,
                  "education": education,
-                 "month": month[1:3], #makedb is reading extra bits before/after so-
-                 "total":total} for (year, sex, month, education, total,) in  cur.fetchall()]
+                 "month": int(month[1:3]), #makedb is reading extra bits before/after so-
+                 "total":total} for (sex, month, education, total,) in  cur.fetchall()]
         conn.close()
 
         genders = list(set([r["gender"] for r in data]))
-        months = list(set([int(r["month"]) for r in data]))
+        months = list(int(set([r["month"])) for r in data]))
         educations = list(set([r["education"] for r in data]))
 
         return {"data":data, 
                 "genders":genders,
-                "month": months,
+                "months": months,
                 "educations": educations}
 
     except: 
