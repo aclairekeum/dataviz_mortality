@@ -43,7 +43,7 @@ def pullData ():
 
         return {"data":data, 
                 "genders":genders,
-                "month": months,
+                "months": months,
                 "educations": educations}
 
     except: 

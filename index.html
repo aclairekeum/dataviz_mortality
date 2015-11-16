@@ -98,9 +98,9 @@ function sumTotalByCauseGenderYear (data,c,g,y)  {
 		    function(r) { return r.cause===c && r.gender===g && r.year===y; });
 }
 
-function sumTotalByMonthYear (data, m)  {
+function sumTotalByMonth (data, m)  {
     return sumTotal(data,
-		    function(r) { return r.month===m; });
+		    function(r) { return r.months===m; });
 }
 
 
@@ -113,18 +113,20 @@ function updateMonthsView(data){
 	console.log("updateMonthsView");
 	var svg = d3.select("#viz-months");
     var data = data.data;
-    var year = data.year;
-    var month = data.month;
+    var month = GLOBAL.data.months;
+    var gender = data.genders;
+    console.log(GLOBAL.data.months);
 
+    var month_test = [];
+    month.forEach =sumTotalByMonth(data,month);
 
-    //var total = sumTotal(data, month.slice(-2))
-    //var total = sumTotalByMonthYear(data,c,y);
-	var buckets = 9,
-          colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"], // alternatively colorbrewer.YlGnBu[9]
-          month_list = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-          month_numbers = ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012"];
+    // forEach(var i = 0; i <= month.length; i++) {
+    // 	month_test.push(sumTotalByMonth(data, month[i]))
+    // };
+   	//month_test = sumTotalByMonth(data, month);
+   	console.log(month_test, "month_test");
 
-    var height = svg.attr("height");
+   	var height = svg.attr("height");
     var width = svg.attr("width");
 
     var margin = 50;
@@ -133,31 +135,16 @@ function updateMonthsView(data){
     var padding = 5; 
     var barWidth= chartWidth/data.length - padding;
 
-   	var monthTotal = [];
-   	var month_totals = [];
-
-   	for (var i = 0; i <= month_list.length - 1; i++) {
-   		month_totals.push(sumTotalByMonthYear(data, month_numbers[i]));
-   		//console.log(sumTotalByMonthYear(data, month_numbers[i], year));
-   		//console.log(MONTHS[i].slice(-2));
-   	};
-   	//console.log(monthTotal.month_list[1]);
-   	console.log("hello",sumTotalByMonthYear(data, month_numbers[1]));
-   
-
-   	monthTotal = month_list.concat(month_totals)
-	console.log(monthTotal);
-  //var datatesting = {1:1,2:2,3:3};
-  svg.selectAll('rect')
-    	.data(monthTotal)
-    	.enter()
-    	.append('rect')
-    	 .attr("x", function(d, i){if (i%3 || i ==0){return margin} else {return margin+55*i};})
-    	 .attr('y', function(d, i){if (i < 3){return margin +50}; if (i >= 3 && i <=6){return margin +50+ 55*1}; if(i >= 6 && i <=9){return margin+50 + 55*2}; if(i >= 9){return margin+50 + 55*3};})
-         .attr("width", 50)
-         .attr("height", 50)//function(d){return d.total})
-    	 .attr('fill', "#ffccff");
-        }
+	  svg.selectAll('rect')
+	    	.data(data)
+	    	.enter()
+	    	.append('rect')
+	    	 .attr("x", function(d, i){5*i})
+	    	 .attr('y', function(d, i){5*i})
+	         .attr("width", 50)
+	         .attr("height", 50)//function(d){return d.total})
+	    	 .attr('fill', chooseColor(month_test));
+	        }
      
 function chooseColor(data_val)
 {
@@ -440,14 +427,14 @@ function createGendersView (data) {
  *
  */
 
-function causeText (i) { 
-    var index = CAUSE[i].indexOf("(");
-    if (index < 0) { 
-	return CAUSE[i];
-    } else {
-	return CAUSE[i].slice(0,index-1);
-    }
-}
+// function causeText (i) { 
+//     var index = CAUSE[i].indexOf("(");
+//     if (index < 0) { 
+// 	return CAUSE[i];
+//     } else {
+// 	return CAUSE[i].slice(0,index-1);
+//     }
+// }
 
 function monthText (i) { 
     var index = MONTHS[i].indexOf("(");
@@ -474,50 +461,50 @@ var MONTHS = {
 
 }
 
-var CAUSE = {
-    "1":"Tuberculosis (A16-A19)",
-    "2":"Syphilis (A50-A53)",
-    "3":"Human immunodeficiency virus (HIV) disease (B20-B24)",
-    "4":"Malignant neoplasms (C00-C97)",
-    "5":"Malignant neoplasm of stomach (C16)",
-    "6":"Malignant neoplasms of colon, rectum and anus (C18-C21)",
-    "7":"Malignant neoplasm of pancreas (C25)",
-    "8":"Malignant neoplasms of trachea, bronchus and lung (C33-C34)",
-    "9":"Malignant neoplasm of breast (C50)",
-    "10":"Malignant neoplasms of cervix uteri, corpus uteri and ovary (C53-C56)",
-    "11":"Malignant neoplasm of prostate (C61)",
-    "12":"Malignant neoplasms of urinary tract (C64-C68)",
-    "13":"Non-Hodgkin's lymphoma (C82-C85)",
-    "14":"Leukemia (C91-C95)",
-    "15":"Other malignant neoplasms (C00-C15,C17,C22-C24,C26-C32,C37-C49,C51-C52, C57-C60,C62-C63,C69-C81,C88,C90,C96-C97)",
-    "16":"Diabetes mellitus (E10-E14)",
-    "17":"Alzheimer's disease (G30)",
-    "18":"Major cardiovascular diseases (I00-I78)",
-    "19":"Diseases of heart (I00-I09,I11,I13,I20-I51)",
-    "20":"Hypertensive heart disease with or without renal disease (I11,I13)",
-    "21":"Ischemic heart diseases (I20-I25)",
-    "22":"Other diseases of heart (I00-I09,I26-I51)",
-    "23":"Essential (primary) hypertension and hypertensive renal disease (I10,I12,I15)",
-    "24":"Cerebrovascular diseases (I60-I69)",
-    "25":"Atherosclerosis (I70)",
-    "26":"Other diseases of circulatory system (I71-I78)",
-    "27":"Influenza and pneumonia (J09-J18)",
-    "28":"Chronic lower respiratory diseases (J40-J47)",
-    "29":"Peptic ulcer (K25-K28)",
-    "30":"Chronic liver disease and cirrhosis (K70,K73-K74)",
-    "31":"Nephritis, nephrotic syndrome, and nephrosis (N00-N07,N17-N19,N25-N27)",
-    "32":"Pregnancy, childbirth and the puerperium (O00-O99)",
-    "33":"Certain conditions originating in the perinatal period (P00-P96)",
-    "34":"Congenital malformations, deformations and chromosomal abnormalities (Q00-Q99)",
-    "35":"Sudden infant death syndrome (R95)",
-    "36":"Symptoms, signs and abnormal clinical and laboratory findings, not  elsewhere classified (excluding Sudden infant death syndrome) (R00-R94,R96-R99)",
-    "37":"All other diseases (Residual) (A00-A09,A20-A49,A54-B19,B25-B99,D00-E07, E15-G25,G31-H93,I80-J06,J20-J39,J60-K22,K29-K66,K71-K72, K75-M99,N10-N15,N20-N23,N28-N98,U04)",
-    "38":"Motor vehicle accidents (V02-V04,V09.0,V12-V14,V19.0-V19.2,V19.4-V19.6, V20-V79,V80.3-V80.5,V81.0-V81.1,V82.0-V82.1,V83-V86,V87.0-V87.8, V88.0-V88.8,V89.0,V89.2)",
-    "39":"All other and unspecified accidents and adverse effects (V01,V05-V06,V09.1,V09.3-V09.9,V10-V11,V15-V18,V19.3,V19.8-V19.9, V80.0-V80.2,V80.6-V80.9,V81.2-V81.9,V82.2-V82.9,V87.9,V88.9,V89.1, V89.3,V89.9,V90-X59,Y40-Y86,Y88)",
-    "40":"Intentional self-harm (suicide) (*U03,X60-X84,Y87.0)",
-    "41":"Assault (homicide) (*U01-*U02,X85-Y09,Y87.1)",
-    "42":"All other external causes (Y10-Y36,Y87.2,Y89)"
-}
+// var CAUSE = {
+//     "1":"Tuberculosis (A16-A19)",
+//     "2":"Syphilis (A50-A53)",
+//     "3":"Human immunodeficiency virus (HIV) disease (B20-B24)",
+//     "4":"Malignant neoplasms (C00-C97)",
+//     "5":"Malignant neoplasm of stomach (C16)",
+//     "6":"Malignant neoplasms of colon, rectum and anus (C18-C21)",
+//     "7":"Malignant neoplasm of pancreas (C25)",
+//     "8":"Malignant neoplasms of trachea, bronchus and lung (C33-C34)",
+//     "9":"Malignant neoplasm of breast (C50)",
+//     "10":"Malignant neoplasms of cervix uteri, corpus uteri and ovary (C53-C56)",
+//     "11":"Malignant neoplasm of prostate (C61)",
+//     "12":"Malignant neoplasms of urinary tract (C64-C68)",
+//     "13":"Non-Hodgkin's lymphoma (C82-C85)",
+//     "14":"Leukemia (C91-C95)",
+//     "15":"Other malignant neoplasms (C00-C15,C17,C22-C24,C26-C32,C37-C49,C51-C52, C57-C60,C62-C63,C69-C81,C88,C90,C96-C97)",
+//     "16":"Diabetes mellitus (E10-E14)",
+//     "17":"Alzheimer's disease (G30)",
+//     "18":"Major cardiovascular diseases (I00-I78)",
+//     "19":"Diseases of heart (I00-I09,I11,I13,I20-I51)",
+//     "20":"Hypertensive heart disease with or without renal disease (I11,I13)",
+//     "21":"Ischemic heart diseases (I20-I25)",
+//     "22":"Other diseases of heart (I00-I09,I26-I51)",
+//     "23":"Essential (primary) hypertension and hypertensive renal disease (I10,I12,I15)",
+//     "24":"Cerebrovascular diseases (I60-I69)",
+//     "25":"Atherosclerosis (I70)",
+//     "26":"Other diseases of circulatory system (I71-I78)",
+//     "27":"Influenza and pneumonia (J09-J18)",
+//     "28":"Chronic lower respiratory diseases (J40-J47)",
+//     "29":"Peptic ulcer (K25-K28)",
+//     "30":"Chronic liver disease and cirrhosis (K70,K73-K74)",
+//     "31":"Nephritis, nephrotic syndrome, and nephrosis (N00-N07,N17-N19,N25-N27)",
+//     "32":"Pregnancy, childbirth and the puerperium (O00-O99)",
+//     "33":"Certain conditions originating in the perinatal period (P00-P96)",
+//     "34":"Congenital malformations, deformations and chromosomal abnormalities (Q00-Q99)",
+//     "35":"Sudden infant death syndrome (R95)",
+//     "36":"Symptoms, signs and abnormal clinical and laboratory findings, not  elsewhere classified (excluding Sudden infant death syndrome) (R00-R94,R96-R99)",
+//     "37":"All other diseases (Residual) (A00-A09,A20-A49,A54-B19,B25-B99,D00-E07, E15-G25,G31-H93,I80-J06,J20-J39,J60-K22,K29-K66,K71-K72, K75-M99,N10-N15,N20-N23,N28-N98,U04)",
+//     "38":"Motor vehicle accidents (V02-V04,V09.0,V12-V14,V19.0-V19.2,V19.4-V19.6, V20-V79,V80.3-V80.5,V81.0-V81.1,V82.0-V82.1,V83-V86,V87.0-V87.8, V88.0-V88.8,V89.0,V89.2)",
+//     "39":"All other and unspecified accidents and adverse effects (V01,V05-V06,V09.1,V09.3-V09.9,V10-V11,V15-V18,V19.3,V19.8-V19.9, V80.0-V80.2,V80.6-V80.9,V81.2-V81.9,V82.2-V82.9,V87.9,V88.9,V89.1, V89.3,V89.9,V90-X59,Y40-Y86,Y88)",
+//     "40":"Intentional self-harm (suicide) (*U03,X60-X84,Y87.0)",
+//     "41":"Assault (homicide) (*U01-*U02,X85-Y09,Y87.1)",
+//     "42":"All other external causes (Y10-Y36,Y87.2,Y89)"
+// }
     
 
 /*
@@ -533,7 +520,8 @@ function getData (f) {
 		     console.log(error);
 		 } else {
 		     d3.selectAll(".loading").remove();
-		     //console.log(" data =", data);
+		     console.log(" data =", data);
+		     console.log(data.months);
 		     f(data);
 		 }
 	     });
