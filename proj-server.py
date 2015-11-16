@@ -38,7 +38,7 @@ def pullData ():
         conn.close()
 
         genders = list(set([r["gender"] for r in data]))
-        months = list(int(set([r["month"])) for r in data]))
+        months = list(set([r["month"]) for r in data]))
         educations = list(set([r["education"] for r in data]))
 
         return {"data":data, 
