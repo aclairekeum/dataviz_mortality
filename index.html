@@ -112,10 +112,10 @@ function createMonthsView(data){
 function updateMonthsView(data){
 	console.log("updateMonthsView");
 	var svg = d3.select("#viz-months");
+    var month =data.months;
     var data = data.data;
-    var month = GLOBAL.data.months;
     var gender = data.genders;
-    console.log(GLOBAL.data.months);
+    console.log(month);
 
     var month_test = [];
     month.forEach =sumTotalByMonth(data,month);
@@ -125,7 +125,7 @@ function updateMonthsView(data){
     // };
    	//month_test = sumTotalByMonth(data, month);
    	console.log(month_test, "month_test");
-
+   	console.log(sumTotalByMonth(data, "01"));
    	var height = svg.attr("height");
     var width = svg.attr("width");
 
