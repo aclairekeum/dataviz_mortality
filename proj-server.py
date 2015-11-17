@@ -29,6 +29,7 @@ def pullData ():
                        FROM mortality
                        WHERE Education!=99
                        GROUP BY sex, Month_Of_Death, Education
+                       LIMIT 10000
                        """)#
         data = [{
                  "gender":sex,
@@ -38,7 +39,7 @@ def pullData ():
         conn.close()
 
         genders = list(set([r["gender"] for r in data]))
-        months = list(set([r["month"]) for r in data]))
+        months = list(set([r["month"] for r in data]))
         educations = list(set([r["education"] for r in data]))
 
         return {"data":data, 

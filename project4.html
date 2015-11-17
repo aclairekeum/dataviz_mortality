@@ -56,7 +56,7 @@ function run () {
     getData(function(data) {
 	GLOBAL.data = data;
 	console.log(data.data.month);
-	createMonthView(data);
+	createMonthView(GLOBAL.data);
 	createGendersView(data);
 	createEduView(data);
     });
