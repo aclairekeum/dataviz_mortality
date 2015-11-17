@@ -29,7 +29,7 @@ def pullData ():
                        FROM mortality
                        WHERE Education!=99
                        GROUP BY sex, Month_Of_Death, Education
-                       LIMIT 10000
+                       LIMIT 1000
                        """)#
         data = [{
                  "gender":sex,

@@ -19,12 +19,12 @@
 
 
     <div>
-      <!-- <svg id="viz-causes" width="500" height="500" style=" display:inline-block;">
+   
+      <svg id="viz-genders" width="300" height="500" style=" display:inline-block;">
       </svg>
-      <svg id="viz-genders" width="500" height="300" style=" display:inline-block;">
-      </svg> -->
 
-      <svg id="viz-months" width="500" height="300" style=" display:inline-block;">
+      <svg id="viz-months" width="300" height="500" style=" display:inline-block;">
+      <div id='heatmap'></div>
       </svg>
     </div>
 
@@ -61,8 +61,8 @@ function run () {
     getData(function(data) {
 	GLOBAL.data = data;
 	// createCausesView(data);
-	//createGendersView(data);
-	createMonthsView(GLOBAL.data);
+	createGendersView(data);
+	createMonthsView(data);
     });
 }
 
@@ -83,20 +83,13 @@ function sumTotal (data, pred) {
     return total;
 }
    
-function sumTotalByCauseYear (data,c,y)  {
+
+
+function sumTotalByGender (data,g)  {
     return sumTotal(data,
-		    function(r) { return r.cause===c && r.year===y; });
+		    function(r) { return r.gender===g; });
 }
 
-function sumTotalByGenderYear (data,g,y)  {
-    return sumTotal(data,
-		    function(r) { return r.gender===g && r.year===y; });
-}
-
-function sumTotalByCauseGenderYear (data,c,g,y)  {
-    return sumTotal(data,
-		    function(r) { return r.cause===c && r.gender===g && r.year===y; });
-}
 
 function sumTotalByMonth (data, m)  {
     return sumTotal(data,
@@ -142,105 +135,59 @@ function updateMonthsView(data){
 	    		col_val = 0;}
 	    	else
 	    		{col_val += 1;}
-    		total_month.push({value:sumTotalByMonth(data, month[i]),row:row_val, col:col_val,month:month_list[i]});
+    		total_month.push({value:sumTotalByGenderMonth(data,gender, month[i]),row:row_val, col:col_val,month:month_list[i]});
     	}
 	};
     
     console.log(total_month);
 
-   
-   	//console.log(sumTotalByMonth(data,1), "sumby");
-   // 	var height = svg.attr("height");
-   //  var width = svg.attr("width");
-
-   //  var margin = 50;
-   //  var chartHeight = height - 2*margin;
-   //  var chartWidth = width - 2*margin;
-   //  var padding = 5; 
-   //  var barWidth= chartWidth/data.length - padding;
-
-	  // svg.selectAll('rect')
-	  //   	.data(total_month)
-	  //   	.ente()
-	  //   	.append('rect')
-	  //   	 .attr("x", function(d, i){return 50+5*i})
-	  //   	 .attr('y', function(d, i){
-	  //   	 	if (i%3 == 0)
-	  //   	 	{return 50+5*i}
-	  //   	 else{
-	  //   	 	return 50
-	  //   	 }})
-	  //        .attr("width", 50)
-	  //        .attr("height", 50);//function(d){return d.total})
-	  //   	 //.attr('fill', chooseColor(month_test));
-
 //height of each row in the heatmap
 //width of each column in the heatmap
 
-var gridSize = 50,
+var gridSize = 76,
     h = gridSize,
     w = gridSize,
     rectPadding = 10;
 
-	var colorLow = 'green', colorMed = 'yellow', colorHigh = 'red';
+	var colorLow = '#70C062', colorMed = '#698267', colorHigh = '#000000';
 
 var margin = {top: 20, right: 20, bottom: 20, left: 20},
-    width = 1000 - margin.left - margin.right,
-    height = 1000 - margin.top - margin.bottom;
+    width = 300,
+    height = 500;
 
 var colorScale = d3.scale.linear()
      .domain([560000, 600000, 660000])
      .range([colorLow, colorMed, colorHigh]);
 
 var svg = d3.select("#viz-months").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .attr("width", width +gridSize)
+    .attr("height", height +gridSize)
+    .append("g");
+    //.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var heatMap = svg.selectAll(".viz-months")
-    .data(total_month, function(d) { return d.col + ':' + d.row; })
-  .enter().append("svg:rect")
-    .attr("x", function(d) { return d.row * w; })
-    .attr("y", function(d) { return d.col * h; })
+    .data(total_month, function(d) { return d.row + ':' + d.col; })
+    .enter().append("svg:rect")
+    .attr("x", function(d) { return d.col * h; })
+    .attr("y", function(d) { return d.row * w; })
     .attr("width", function(d) { return w; })
     .attr("height", function(d) { return h; })
-    .style("fill", function(d) { return colorScale(d.value); })
-    .append("text")
-     .text(function(d) { return d.month; })
-     .attr("x", function(d) { return d.row * w; })
-     .attr("y", function(d) { return d.col * h; })
+    .style("fill", function(d) { return colorScale(d.value); });
+    
+    svg.selectAll(".heatmap")
+    .data(total_month)
+	.enter().append("text")
+     .text(function(d) { return String(d.month); })
+    .attr("x", function(d) { return d.col * h +gridSize/2; })
+    .attr("y", function(d) { return d.row * w +gridSize/2; })
      .style("text-anchor", "middle")
-     .style("fill","white");
+     .style("fill","white")
+     .style("font-family","sans-serif")
+	.style("font-weight","bold")
+	.style("font-size","18px");
 
 	}   
      
-function chooseColor(data_val)
-{
-	if (data_val <= 250000) {
-		return "#ffffd9"
-	}
-	else if (data_val <= 260000)
-	{
-		return "#edf8b1"
-	}
-	else if (data_val <= 270000)
-	{
-		return "#c7e9b4"
-	}
-	else if (data_val <= 280000)
-	{
-		return "#7fcdbb"
-	}
-	else if (data_val <= 290000)
-	{
-		return "#41b6c4"
-	}
-	else if (data_val <= 310000)
-	{
-		return "#1d91c0"
-	}
-}
 
 
 /* 
@@ -249,142 +196,7 @@ function chooseColor(data_val)
  *
  */
 
-function createCausesView (data) {
 
-    var svg = d3.select("#viz-causes");
-
-    svg.append("text")
-	.attr("x",+svg.attr("width")/2)
-	.attr("y",20)
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-family","sans-serif")
-	.style("font-size","20pt")
-	.text("Causes of Death");
-
-    updateCausesView(data);
-
-}
-
-function updateCausesView (data,gender) {
-
-    // first, sort the data by 2013 numbers
-
-    var causes = data.causes;
-    var data = data.data;
-
-    var total = function(c,y) { 
-	if (typeof gender !== "undefined") {
-	    return sumTotalByCauseGenderYear(data,c,gender,y);
-	} else {
-	    return sumTotalByCauseYear(data,c,y);
-	}
-    };
-
-    causes.sort(function(a,b) { return d3.descending(total(a,2013),total(b,2013)); });
-
-    max2013 = d3.max(causes.map(function(d) { return total(d,2013); }));
-    max2008 = d3.max(causes.map(function(d) { return total(d,2008); }));
-
-    var svg = d3.select("#viz-causes");
-
-    var y = d3.scale.linear()
-	.domain([0,Math.max(max2008,max2013)])
-	.range([+svg.attr("height")-10,50]);
-
-    var g = svg.selectAll("g")
-	.data(causes,function(d) { return d; })
-	.enter()
-	.append("g")
-
-    // note: the width attribute holds strings
-    var x2008 = 50; //+svg.attr("width")*1/5;
-    var x2013 = 450; // +svg.attr("width")*3/5;
-
-    var y2008 = function(d) { return y(total(d,2008)); };
-    var y2013 = function(d) { return y(total(d,2013)); };
-
-    g.append("circle")
-	.attr("class","y2008")
-	.attr("cx",x2008)
-	.attr("cy",y2008)
-	.attr("r","5")
-	.style("fill","blue")
-	.style("stroke","none");
-
-    g.append("circle")
-	.attr("class","y2013")
-	.attr("cx",x2013)
-	.attr("cy",y2013)
-	.attr("r","5")
-	.style("fill","blue")
-	.style("stroke","none");
-
-    g.append("line")
-	.attr("x1",x2008)
-	.attr("y1",y2008)
-	.attr("x2",x2013)
-	.attr("y2",y2013)
-	.style("stroke","blue")
-	.style("stroke-width","6px");
-
-    g.on("mouseenter",function (d,i) {  
-	moveToFront(this);
-	d3.select(this).select("line").style("stroke","red");
-	d3.select(this).selectAll("circle").style("fill","red");
-	var y = (y2013(d) + y2008(d)) / 2 - 30;
-	if ( y < 4) { 
-	    y += 60; 
-	}
-	var label = d3.select("#viz-causes");
-	
-	label.append("rect")
-	    .attr("class","label")
-	    .attr("x",0)
-	    .attr("width",500)
-	    .attr("y",y-10)
-	    .attr("height",20)
-	    .style("fill","white")
-	    .style("stroke","none");
-
-	label.insert("text")
-	    .attr("class","label")
-	    .attr("x",(x2013+x2008)/2)
-	    .attr("y",y)
-	    .attr("dy","0.35em")
-	    .style("fill","black")
-	    .style("font-family","sans-serif")
-	    .style("font-size","10pt")
-	    .style("text-anchor","middle")
-	    .text(causeText(d));
-	updateGendersView(GLOBAL.data,d);
-    })
-
-    g.on("mouseleave",function() { 
-	    d3.select(this).select("line").style("stroke","blue");
-	    d3.select(this).selectAll("circle").style("fill","blue");
-	    d3.selectAll(".label").remove();
-	    updateGendersView(GLOBAL.data);
-	});
-
-
-    g = svg.selectAll("g");
-    g.select("circle.y2008").transition()
-	.attr("cy",y2008);
-    g.select("circle.y2013").transition()
-	.attr("cy",y2013);
-    g.select("line").transition()
-	.attr("y1",y2008)
-	.attr("y2",y2013);
-
-}
-
-
-
-/*
- * Move a DOM element to the front 
- *
- */
 
 function moveToFront (node) {
     var parent = node.parentNode;
@@ -392,81 +204,120 @@ function moveToFront (node) {
 }
     
 
-function updateGendersView (data,cause) { 
+function updateGendersView (data,month) { 
 
     var genders = data.genders;
+    var month = data.months;
     var data = data.data;
 
     // if a cause is supplied, then filter by that cause
     // otherwise, show all causes
 
-    if (typeof cause !== "undefined") {
-	var d = genders.map(function(g) {
-	    return {gender:g,
-		    value:sumTotalByCauseGenderYear(data,cause,g,2013)};
-	});
-    } else {
-	var d = genders.map(function(g) {
-	    return {gender:g,
-		    value:sumTotalByGenderYear(data,g,2013)};
-	});
-    }	
+    total_genders = [];
 
-    var bubbles = d3.layout.pack()
-	.sort(function(a,b) { return d3.ascending(a.gender,b.gender); })
-	.size([500,250])  // from svg size
-	.padding(10);
+    if (typeof month !== "undefined") {
+    	for (var i = 0; i < 2; i++) {
+    		total_genders.push({value:sumTotalByGender(data, genders[i]),sex:genders[i]});
+    	}} 
+	else {
+		for (var i = 0; i < 2; i++) {
+	    total_genders.push({value:sumTotalByGenderMonth(data, genders[i], month), sex:genders[i]});}
+    	};
+
+    console.log(total_genders);
+ //    var bubbles = d3.layout.pack()
+	// .sort(function(a,b) { return d3.ascending(a.gender,b.gender); })
+	// .size([500,250])  // from svg size
+	// .padding(10);
 
     //console.log(bubbles.nodes({children:d}));
-    console.log(sumTotalByGenderYear(data,g,2013))
-    var svg = d3.select("#viz-genders");
+    //console.log(sumTotalByGenderYear(data,g,2013))
+        var svg = d3.select("#viz-genders");
+
+    var height = svg.attr("height");
+    var width = svg.attr("width");
+
+    var margin = 50;
+    var chartHeight = height - 2*margin;
+    var chartWidth = width - 2*margin;
+    var padding = 5; 
+    var barWidth= chartWidth/total_genders.length - padding;
+
+    svg.selectAll('rect')
+    	.data(total_genders)
+    	.enter()
+    	.append('rect')
+    	.attr('x', function(d, i){return margin+i*chartWidth/total_genders.length;})
+    	.attr('y', function(d){return chartHeight- d.value/20000;})
+    	.attr('width', barWidth)
+    	.attr('height', function(d){return d.value;})
+    	.attr('fill', "#698267");
+    
+	svg.selectAll('text')
+		.data(total_genders)
+		.enter()
+		.append("text")
+		.text(function(d){return d.value + "%";})
+		.attr("x",function(d, i){return margin+barWidth/2+i*chartWidth/total_genders.length;})
+ 		.attr("y",function(d){return chartHeight- d.value/20000 +20;})
+		.attr("dy","0.3em")
+		.style("text-anchor","middle")
+		.style("font-family","sans-serif")
+		.style("font-weight","bold")
+		.style("font-size","12px")
+		.style("fill", "white")
+		.append("tspan")
+		.text(function(d){return d.sex})
+		.attr("x",function(d, i){return margin+barWidth/2+i*chartWidth/data.length;})
+		.attr("dy", function(d){return (.5*margin) + d.value/20000});
+
 
     /* svg.selectAll("*").remove(); */
 
-    var g = svg.selectAll("g")
-	.data(bubbles.nodes({children:d})
-	      .filter(function(d) { return !d.children; }),
-	      function(d) { return d.gender; })
-	.enter()
-	.append("g")
-	.attr("transform","translate(0,50)");
+ //    var g = svg.selectAll("g")
+	// .data(bubbles.nodes({total_genders:d})
+	//       .filter(function(d) { return !d.children; }),
+	//       function(d) { return d.gender; })
+	// .enter()
+	// .append("g")
+	// .attr("transform","translate(0,50)");
     
-    g.append("circle")
-	.attr("cx",function(d) { return d.x; })
-	.attr("cy",function(d) { return d.y; })
-	.attr("r",0)
-	.style("fill","blue")
-	.style("stroke","none");
+ //    g.append("circle")
+	// .attr("cx",function(d) { return d.x; })
+	// .attr("cy",function(d) { return d.y; })
+	// .attr("r",0)
+	// .style("fill","blue")
+	// .style("stroke","none");
 
-    g.append("text")
-	.attr("x",function(d) { return d.x; })
-	.attr("y",function(d) { return d.y; })
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-weight","bold")
-	.style("fill","white")
+ //    g.append("text")
+	// .attr("x",function(d) { return d.x; })
+	// .attr("y",function(d) { return d.y; })
+	// .attr("dy","0.35em")
+	// .style("text-anchor","middle")
+	// .style("font-weight","bold")
+	// .style("fill","white")
 
-    g.on("mouseenter",function (d,i) {  
-	d3.select(this).select("circle").style("fill","red");
-	updateCausesView(GLOBAL.data,d.gender);
-    });
+ //    g.on("mouseenter",function (d,i) {  
+	// d3.select(this).select("circle").style("fill","red");
+	// updateCausesView(GLOBAL.data,d.gender);
+ //    });
 
-    g.on("mouseleave",function() { 
-	d3.select(this).select("circle").style("fill","blue");
-	updateCausesView(GLOBAL.data);
-    });
+ //    g.on("mouseleave",function() { 
+	// d3.select(this).select("circle").style("fill","blue");
+	// updateCausesView(GLOBAL.data);
+ //    });
 
 
     // update
-    g = svg.selectAll("g");
-    g.select("circle").transition()
-	.attr("cx",function(d) { return d.x; })
-	.attr("cy",function(d) { return d.y; })
-    	.attr("r",function(d) { return d.r; })
-    g.select("text").transition()
-	.attr("x",function(d) { return d.x; })
-	.attr("y",function(d) { return d.y; })
-	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
+ //    g = svg.selectAll("g");
+ //    g.select("circle").transition()
+	// .attr("cx",function(d) { return d.x; })
+	// .attr("cy",function(d) { return d.y; })
+ //    	.attr("r",function(d) { return d.r; })
+ //    g.select("text").transition()
+	// .attr("x",function(d) { return d.x; })
+	// .attr("y",function(d) { return d.y; })
+	// .text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
 
 
 }
