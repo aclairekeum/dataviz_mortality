@@ -27,18 +27,19 @@ def pullData ():
     try: 
         cur.execute("""SELECT sex, Month_Of_Death, Education, SUM(1) as total 
                        FROM mortality
-                       WHERE Education!=99
+                       WHERE Education!='99' AND Education!=''
                        GROUP BY sex, Month_Of_Death, Education
-                       """)#
+                       LIMIT 300 
+                       """) #To make the process faster
         data = [{
                  "gender":sex,
-                 "education": education,
+                 "education": int(education),
                  "month": int(month[1:3]), #makedb is reading extra bits before/after so-
                  "total":total} for (sex, month, education, total,) in  cur.fetchall()]
         conn.close()
 
         genders = list(set([r["gender"] for r in data]))
-        months = list(set([r["month"]) for r in data]))
+        months = list(set([r["month"] for r in data]))
         educations = list(set([r["education"] for r in data]))
 
         return {"data":data, 

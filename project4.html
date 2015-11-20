@@ -53,11 +53,11 @@ function run () {
 	.style("text-anchor","middle")
 	.text("loading data...");
 
-    getData(function(data) {
+  getData(function(data) {
 	GLOBAL.data = data;
-	console.log(data.data.month);
-	createMonthView(data);
-	createGendersView(data);
+	console.log(data.months);
+	// createMonthView(data);
+	// createGendersView(data);
 	createEduView(data);
     });
 }
@@ -69,32 +69,41 @@ function run () {
  * 
  */
 
-// function sumTotal (data, pred) {
-//     var total = 0;
-//     data.forEach(function(r) {
-// 	if (pred(r)) { 
-// 	    total += +r["total"]
-// 	}
-//     });
-//     return total;
-// }
+ function sumTotal (data, pred) {
+    var total = 0;
+    data.forEach(function(r) {
+	if (pred(r)) { 
+	    total += +r["total"]
+	}
+    });
+    return total;
+}
    
-// function sumTotalByCauseYear (data,c,y)  {
-//     return sumTotal(data,
-// 		    function(r) { return r.cause===c && r.year===y; });
-// }
 
-// function sumTotalByGenderYear (data,g,y)  {
-//     return sumTotal(data,
-// 		    function(r) { return r.gender===g && r.year===y; });
-// }
+function sumTotalByEduGenderMonths (data, e,g,m){
+	return sumTotal(data, 
+		function(r){ return r.education === e &&
+							r.gender === g &&
+							r.month === m;});
+}
 
-// function sumTotalByCauseGenderYear (data,c,g,y)  {
-//     return sumTotal(data,
-// 		    function(r) { return r.cause===c && r.gender===g && r.year===y; });
-// }
+function sumTotalByEdu (data, e){
+	return sumTotal(data, 
+		function(r){ return r.education === e 
+							;});
+}
 
+function sumTotalByEduMonth (data, e,m){
+	return sumTotal(data, 
+		function(r){ return r.education === e &&
+							r.month === m;});
+}
 
+function sumTotalByGenderMonth (data, g,m){
+	return sumTotal(data, 
+		function(r){ return r.gender === g &&
+							r.month === m;});
+}
 
 
 /* 
@@ -102,7 +111,6 @@ function run () {
  * of the data
  *
  */
-
 function createMonthView (data) {
 
    //Add create MonthView
@@ -124,17 +132,126 @@ function createEduView (data) {
 	.attr("y",20)
 	.attr("dy","0.35em")
 	.style("text-anchor","middle")
-	.style("font-family","sans-serif")
+	.style("font-family","fantasy")
 	.style("font-size","20pt")
-	.text("Genders");
+	.text("Education");
+
 
     updateEduView(data);
 
 }
 
-function updateEduView (data) {
+function updateEduView (data, gender, month) {
+
+   var svg = d3.select("#viz-education")
+
+   var height= svg.attr("height")
+   var width = svg.attr("width")
+   
+   sel = svg
+   .append("g")
+   .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
    //Add update MonthView
+   var educations = data.educations;
+   var data = data.data;
+   var r = svg.attr("height") / 2.5;
+
+   
+   if (typeof cause !== "undefined" || typeof month !== "undefined") {
+	var d = educations.map(function(e) {
+	    return {edu:e,
+		    value:sumTotalByEduGenderMonth(data, e, gender, month)};
+	});
+    } else {
+	var d = educations.map(function(e) {
+	    return {edu:e,
+		    value:sumTotalByEdu(data, e)};
+	});
+    }	
+   
+   d.sort(function(x, y){
+   return d3.ascending(x.edu, y.edu);
+	});
+
+   var color = d3.scale.category20();
+   // Using d3 layout
+   var pie = d3.layout.pie()
+   .value(function(d){return d.value;})
+   .sort(function(a,b) {return d3.ascending(a.edu,b.edu); });
+   // .sort(function(a,b) { return d3.ascending(a.edu,b.edu);} );
+
+   var arc = d3.svg.arc()
+   .outerRadius(r)
+   .innerRadius(70);
+  
+   var text;
+   var stroke; 
+   var g = svg.selectAll("g.arc")
+   .data(pie(d))
+   .enter()
+   .append("g")
+   .attr("class","arc")
+   .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
+
+   g.append("path")
+   .attr("stroke", "white")
+   .attr("stroke-width", 0.5)
+   .each(function(d) { this._current = d; })
+   .attr("fill", function(d, i) { return color(i); })
+   .attr("d",arc)
+   .on("mouseenter", function(d,i){
+      console.log(d,i);
+      console.log(EDUCATION[i]);
+      text = g.append("text")
+     .attr("dy", ".35em")
+     .style("font-family","fantasy")
+     .attr("text-anchor", "middle")
+     .text(EDUCATION[i])
+     .style("fill","black");
+   })
+   .on("mouseout", function(d) {
+               text.remove();
+    });
+
+  //Update Code
+   g = svg.selectAll("g.arc");
+   g.select("path").transition()
+   .duration(500)
+   .attrTween("d", arcChange);
+  
+   //next plan. Add them into elementary together, make the label pretty, and make it animated everytime it's updated.
+
+   // var path = sel.selectAll("path")
+   // .data(pie(d))
+   // .enter()
+   // .append("path");
+
+   // path.transition()
+   // .duration(500)
+   // .attr("fill", function(d, i) { return color(i); })
+   // .attr("d",arc)
+   // .each(function(d) { this._current = d; });
+
+   // path.append("text")
+   // .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+   // .text(function(d,i){return EDUCATION[i];})
+   // .style("fill","white");
+
+
+   // function pieupdate(){
+   // 	path.data(pie(d))
+   // 	path.transition().duration(750).attrTween("d", arcTween);
+   // }
+
+   function arcChange(a) {
+    console.log('arcChange');
+   var i = d3.interpolate(this._current, a);
+   this._current = i(0);
+   return function(t) {
+   return arc(i(t));
+   }
+  }
 
 }
 
@@ -142,109 +259,108 @@ function updateEduView (data) {
  * Move a DOM element to the front 
  *
  */
-
 function moveToFront (node) {
     var parent = node.parentNode;
     parent.appendChild(node);
 }
     
 
-function updateGendersView (data,cause) { 
+// function updateGendersView (data,cause) { 
 
-    var genders = data.genders;
-    var data = data.data;
+//     var genders = data.genders;
+//     var data = data.data;
 
-    console.log(data.months);
-    // if a cause is supplied, then filter by that cause
-    // otherwise, show all causes
+//     console.log(data.months);
+//     // if a cause is supplied, then filter by that cause
+//     // otherwise, show all causes
 
-    if (typeof cause !== "undefined") {
-	var d = genders.map(function(g) {
-	    return {gender:g,
-		    value:sumTotalByCauseGenderYear(data,cause,g,2013)};
-	});
-    } else {
-	var d = genders.map(function(g) {
-	    return {gender:g,
-		    value:sumTotalByGenderYear(data,g,2013)};
-	});
-    }	
+//     if (typeof cause !== "undefined") {
+// 	var d = genders.map(function(g) {
+// 	    return {gender:g,
+// 		    value:sumTotalByCauseGenderYear(data,cause,g,2013)};
+// 	});
+//     } else {
+// 	var d = genders.map(function(g) {
+// 	    return {gender:g,
+// 		    value:sumTotalByGenderYear(data,g,2013)};
+// 	});
+//     }	
 
-    var bubbles = d3.layout.pack()
-	.sort(function(a,b) { return d3.ascending(a.gender,b.gender); })
-	.size([500,250])  // from svg size
-	.padding(10);
+//     var bubbles = d3.layout.pack()
+// 	.sort(function(a,b) { return d3.ascending(a.gender,b.gender); })
+// 	.size([500,250])  // from svg size
+// 	.padding(10);
 
-    console.log(bubbles.nodes({children:d}));
+//     console.log(bubbles.nodes({children:d}));
 
-    var svg = d3.select("#viz-genders");
+//     var svg = d3.select("#viz-genders");
 
-    /* svg.selectAll("*").remove(); */
+//     /* svg.selectAll("*").remove(); */
 
-    var g = svg.selectAll("g")
-	.data(bubbles.nodes({children:d})
-	      .filter(function(d) { return !d.children; }),
-	      function(d) { return d.gender; })
-	.enter()
-	.append("g")
-	.attr("transform","translate(0,50)");
+//     var g = svg.selectAll("g")
+// 	.data(bubbles.nodes({children:d})
+// 	      .filter(function(d) { return !d.children; }),
+// 	      function(d) { return d.gender; })
+// 	.enter()
+// 	.append("g")
+// 	.attr("transform","translate(0,50)");
     
-    g.append("circle")
-	.attr("cx",function(d) { return d.x; })
-	.attr("cy",function(d) { return d.y; })
-	.attr("r",0)
-	.style("fill","blue")
-	.style("stroke","none");
+//     g.append("circle")
+// 	.attr("cx",function(d) { return d.x; })
+// 	.attr("cy",function(d) { return d.y; })
+// 	.attr("r",0)
+// 	.style("fill","blue")
+// 	.style("stroke","none");
 
-    g.append("text")
-	.attr("x",function(d) { return d.x; })
-	.attr("y",function(d) { return d.y; })
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-weight","bold")
-	.style("fill","white")
+//     g.append("text")
+// 	.attr("x",function(d) { return d.x; })
+// 	.attr("y",function(d) { return d.y; })
+// 	.attr("dy","0.35em")
+// 	.style("text-anchor","middle")
+// 	.style("font-weight","bold")
+// 	.style("fill","white")
 
-    g.on("mouseenter",function (d,i) {  
-	d3.select(this).select("circle").style("fill","red");
-	updateCausesView(GLOBAL.data,d.gender);
-    });
+//     g.on("mouseenter",function (d,i) {  
+// 	d3.select(this).select("circle").style("fill","red");
+// 	updateCausesView(GLOBAL.data,d.gender);
+//     });
 
-    g.on("mouseleave",function() { 
-	d3.select(this).select("circle").style("fill","blue");
-	updateCausesView(GLOBAL.data);
-    });
-
-
-    // update
-    g = svg.selectAll("g");
-    g.select("circle").transition()
-	.attr("cx",function(d) { return d.x; })
-	.attr("cy",function(d) { return d.y; })
-    	.attr("r",function(d) { return d.r; })
-    g.select("text").transition()
-	.attr("x",function(d) { return d.x; })
-	.attr("y",function(d) { return d.y; })
-	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
-}
+//     g.on("mouseleave",function() { 
+// 	d3.select(this).select("circle").style("fill","blue");
+// 	updateCausesView(GLOBAL.data);
+//     });
 
 
+//     // update
+//     g = svg.selectAll("g");
+//     g.select("circle").transition()
+// 	.attr("cx",function(d) { return d.x; })
+// 	.attr("cy",function(d) { return d.y; })
+//     	.attr("r",function(d) { return d.r; })
+//     g.select("text").transition()
+// 	.attr("x",function(d) { return d.x; })
+// 	.attr("y",function(d) { return d.y; })
+// 	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
+// }
 
-function createGendersView (data) {
 
-    var svg = d3.select("#viz-genders");
 
-    svg.append("text")
-	.attr("x",+svg.attr("width")/2)
-	.attr("y",20)
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-family","sans-serif")
-	.style("font-size","20pt")
-	.text("Genders");
+// function createGendersView (data) {
 
-    updateGendersView(data);
+//     var svg = d3.select("#viz-genders");
 
-}
+//     svg.append("text")
+// 	.attr("x",+svg.attr("width")/2)
+// 	.attr("y",20)
+// 	.attr("dy","0.35em")
+// 	.style("text-anchor","middle")
+// 	.style("font-family","sans-serif")
+// 	.style("font-size","20pt")
+// 	.text("Genders");
+
+//     updateGendersView(data);
+
+// }
 
 
 /*
@@ -262,16 +378,16 @@ function createGendersView (data) {
 // }
 
 var EDUCATION = {
-	"00": "No formal education",
-	"01": "1 Year(s) of elementary school",
-	"02": "1 Year(s) of elementary school",
-	"03": "1 Year(s) of elementary school",
-	"04": "1 Year(s) of elementary school",
-	"05": "1 Year(s) of elementary school",
-	"06": "1 Year(s) of elementary school",
-	"07": "1 Year(s) of elementary school",
-	"08": "1 Year(s) of elementary school",
-	"09": "1 year of high school",
+	"0": "No formal education",
+	"1": "1 Year(s) of elementary school",
+	"2": "2 Year(s) of elementary school",
+	"3": "3 Year(s) of elementary school",
+	"4": "4 Year(s) of elementary school",
+	"5": "5 Year(s) of elementary school",
+	"6": "6 Year(s) of elementary school",
+	"7": "7 Year(s) of elementary school",
+	"8": "8 Year(s) of elementary school",
+	"9": "1 year of high school",
 	"10": "2 years of high school",
 	"11": "3 years of high school",
 	"12": "4 years of high school",
@@ -280,7 +396,7 @@ var EDUCATION = {
 	"15": "3 years of college",
 	"16": "4 years of college",
 	"17": "5 or more years of college",
-	"99": "Not stated",
+	// "99": "Not stated",
 	"": "Not on certificate"
 }
 
@@ -329,31 +445,6 @@ var EDUCATION = {
 //     "42":"All other external causes (Y10-Y36,Y87.2,Y89)"
 // }
     
-var testData = {
-	"data": [
-		{
-		gender: "M",
-		education: "00",
-		month: 1},
-		{
-		gender: "F",
-		education: "10",
-		month: 4},
-		{
-		gender: "M",
-		education: "04",
-		month: 7},
-	],
-	"months": {
-		[1,2,3,4,5,6,7,8,9,10,11,12]
-	},
-	"educations":{
-		["00","01","02","03","04"]
-	},
-	"genders":{
-		["M", "F"]
-	}
-}
 /*
  * Pulls the data
  * 
