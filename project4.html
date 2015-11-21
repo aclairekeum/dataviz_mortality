@@ -130,12 +130,14 @@ function sumTotalByEduGenderMonth (data, e,g,m){
  */
 function createMonthsView(data){
   console.log("createMonthsView")
+
     updateMonthsView(data);
 }
 
 function updateMonthsView(data, gender, edu){
   console.log("updateMonthsView");
     var month =data.months;
+    // console.log(month);
     var data = data.data;
     var total_month = [];
     var row_val = 0;
@@ -200,8 +202,6 @@ function updateMonthsView(data, gender, edu){
       width = 300,
       height = 500;
 
-
-
   var colorScale = d3.scale.linear()
        .domain([Math.min.apply(Math,month_values), (Math.max.apply(Math,month_values)+Math.min.apply(Math,month_values))/2, Math.max.apply(Math,month_values)])
        .range([colorLow, colorMed, colorHigh]);
@@ -213,29 +213,37 @@ function updateMonthsView(data, gender, edu){
     .enter()
     .append("g");
     
-  var heatMap = g.append("rect");
-
-    heatMap.attr("x", function(d) { return d.col * h; })
+  g.append("rect")
+    .attr("x", function(d) { return d.col * h; })
     .attr("y", function(d) { return d.row * w; })
     .attr("width", function(d) { return w; })
     .attr("height", function(d) { return h; })
     .attr("stroke", "white")
-    .attr("stroke-width",0.5)
-    
+    .attr("stroke-width",0.5);
+
   g.append("text")
-       .text(function(d) { return String(d.month); })
-      .attr("x", function(d) { return d.col * h +gridSize/2; })
-      .attr("y", function(d) { return d.row * w +gridSize/2; })
-       .style("text-anchor", "middle")
-       .style("fill","white")
-       .style("font-family","fantasy")
-      .style("font-weight","bold")
-      .style("font-size","18px");
+    .text(function(d) { return String(d.month); })
+    .attr("x", function(d) { return d.col * h +gridSize/2; })
+    .attr("y", function(d) { return d.row * w +gridSize/2; })
+    .style("text-anchor", "middle")
+    .style("fill","white")
+    .style("font-family","fantasy")
+    .style("font-weight","bold")
+    .style("font-size","18px");
 
-  g.data(total_month).enter();
-
-  heatMap.transition()
+  g.select("rect").transition()
   .style("fill", function(d) { return colorScale(d.value); });
+
+  g.on("mouseenter",function (d,i) {  
+  d3.select(this).select("rect").style("opacity", 0.3);
+  updateGendersView(GLOBAL.data,undefined,i+1);
+  });
+
+  g.on("mouseout", function(d) {
+  d3.select(this).select("rect").style("opacity", 1);
+  updateGendersView(GLOBAL.data);
+  });
+
   }   
 
 function createEduView (data) {
@@ -323,16 +331,14 @@ function updateEduView (data, gender, month) {
     g.on("mouseenter",function (d,i) {  
     d3.select(this).select("path").style("opacity", 0.5);
      
-      text = g.append("text")
-     .attr("dy", ".35em")
-     .style("font-family","fantasy")
-     .attr("text-anchor", "middle")
-     .text(EDUCATION[i])
-     .style("fill","black");
-     updateGendersView(GLOBAL.data,i);
-     console.log("should update gender sent");
-     // console.log(EDUCATION[i],i);
-  // updateMonthsView(GLOBAL.data,GLOBAL.data.genders[i]);
+    text = g.append("text")
+   .attr("dy", ".35em")
+   .style("font-family","fantasy")
+   .attr("text-anchor", "middle")
+   .text(EDUCATION[i])
+   .style("fill","black");
+   updateGendersView(GLOBAL.data,i,undefined);
+   console.log("should update gender sent");
     });
 
     g.on("mouseout", function(d) {
@@ -367,11 +373,10 @@ function moveToFront (node) {
     parent.appendChild(node);
 }
     
-function updateGendersView (data,edu) { 
+function updateGendersView (data,edu,month) { 
 
-    console.log("update gender received");
+    console.log("update gender received"+"month"+month);
     var genders = data.genders;
-    // var month = data.months;
     var data = data.data;
 
     total_genders = [];
@@ -380,6 +385,11 @@ function updateGendersView (data,edu) {
     if (typeof edu !== "undefined") {
       for (var i = 0; i < 2; i++) {
         total_genders.push({value:sumTotalByEduGender(data, edu, genders[i]),sex:genders[i]});
+      }} 
+    else if(typeof month !== "undefined")
+      {
+      for (var i = 0; i < 2; i++) {
+        total_genders.push({value:sumTotalByGenderMonth(data,genders[i],month),sex:genders[i]});
       }} 
   else {
     for (var i = 0; i < 2; i++) {
