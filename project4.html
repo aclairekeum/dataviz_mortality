@@ -13,8 +13,9 @@
     <style>
     h1 {
     color:blue;
-    font-family: fantasy;
+    font-family: serif;
     font-size:300%;
+    text-align: center;
     }
 
     </style>
@@ -22,7 +23,7 @@
   </head>
   
   <body>
-    <h1>Number of death in year of 2003, 2008, and 2013</h1>
+    <h1>Number of deaths in year of 2003, 2008, and 2013</h1>
 
     <div>
       <svg id="viz-months" width="500" height="500" style=" display:inline-block;">
@@ -120,7 +121,7 @@ function createMonthsView(data){
   .attr("y",20)
   .attr("dy","0.35em")
   .style("text-anchor","middle")
-  .style("font-family","fantasy")
+  .style("font-family","serif")
   .style("font-size","20pt")
   .text("Months of Death");
     updateMonthsView(data);
@@ -138,6 +139,7 @@ function updateMonthsView(data, gender, edu){
   var month_list = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O","N","D"];
 
   //split the datasets and get the right sum
+  //check if something is hovered (month, gender) - if it is, split data differently
    if (typeof gender !== "undefined") {
   var d = month.map(function(m, i) {
       return {month:m,
@@ -185,7 +187,8 @@ function updateMonthsView(data, gender, edu){
     .data(d)
     .enter()
     .append("g");
-    
+
+   //append squares into a grid format for heatmap
   g.append("rect")
     .attr("x", function(d) { return d.col * h; })
     .attr("y", function(d) { return d.row * w +100 ; })
@@ -200,7 +203,7 @@ function updateMonthsView(data, gender, edu){
     .attr("y", function(d) { return d.row * w +gridSize/2 +100; })
     .style("text-anchor", "middle")
     .style("fill","white")
-    .style("font-family","fantasy")
+    .style("font-family","serif")
     .style("font-weight","bold")
     .style("font-size","18px");
 
@@ -241,7 +244,7 @@ legend.append("text")
     .attr("x", 26)
     .attr("y", 10)
     .attr("dy", ".35em")
-    .style("font-family","fantasy")
+    .style("font-family","serif")
     .text(String);
 
 svg.append("text")
@@ -249,7 +252,7 @@ svg.append("text")
     .attr("x", width + 20)
     .attr("y", 100)
     .attr("dy", ".35em")
-    .style("font-family","fantasy")
+    .style("font-family","serif")
     .text("Count");
 
   }   
@@ -264,7 +267,7 @@ function createEduView (data) {
   .attr("y",20)
   .attr("dy","0.35em")
   .style("text-anchor","middle")
-  .style("font-family","fantasy")
+  .style("font-family","serif")
   .style("font-size","20pt")
   .text("Education");
   updateEduView(data);
@@ -282,6 +285,7 @@ function updateEduView (data, gender, month) {
    var r = svg.attr("height") / 2.5;
    
   //split the data so that it gets the right sum (count)
+    //check if something is hovered (month, gender) - if it is, split data differently
    if (typeof gender !== "undefined") {
   var d = educations.map(function(e) {
       return {edu:e,
@@ -341,7 +345,7 @@ function updateEduView (data, gender, month) {
    //show the texts for each pie slices.
     text = g.append("text")
    .attr("dy", ".35em")
-   .style("font-family","fantasy")
+   .style("font-family","serif")
    .attr("text-anchor", "middle")
    .text(EDUCATION[i])
    .style("fill","black");
@@ -386,7 +390,7 @@ function createGendersView (data) {
   .attr("y",20)
   .attr("dy","0.35em")
   .style("text-anchor","middle")
-  .style("font-family","fantasy")
+  .style("font-family","serif")
   .style("font-size","20pt")
   .text("Genders");
     updateGendersView(data);
@@ -402,6 +406,7 @@ function updateGendersView (data,edu,month) {
     var totalnum  =0;
 
     //split the data to get right sum
+      //check if something is hovered (month, gender) - if it is, split data differently
     if (typeof edu !== "undefined") {
       for (var i = 0; i < 2; i++) {
         total_genders.push({value:sumTotalByEduGender(data, edu, genders[i]),sex:genders[i]});
@@ -445,7 +450,7 @@ function updateGendersView (data,edu,month) {
     .attr("x",function(d, i){return margin+barWidth/2+i*chartWidth/total_genders.length;})
     .attr("dy","0.3em")
     .style("text-anchor","middle")
-    .style("font-family","fantasy")
+    .style("font-family","serif")
     .style("font-weight","bold")
     .style("font-size","12px")
     .style("fill", "white")
