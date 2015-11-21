@@ -19,7 +19,7 @@
 
 
     <div>
-      <svg id="viz-month" width="500" height="500" style=" display:inline-block;">
+      <svg id="viz-months" width="500" height="500" style=" display:inline-block;">
       </svg>
       <svg id="viz-genders" width="500" height="300" style=" display:inline-block;">
       </svg>
@@ -44,8 +44,8 @@ window.addEventListener("load",run);
 var GLOBAL = {};
 
 function run () {
-    var svg = d3.selectAll("svg");
-    svg.append("text")
+  var svg = d3.selectAll("svg");
+  svg.append("text")
 	.attr("class","loading")
 	.attr("x",+svg.attr("width")/2)
 	.attr("y",+svg.attr("height")/2)
@@ -55,10 +55,7 @@ function run () {
 
   getData(function(data) {
 	GLOBAL.data = data;
-	console.log(data.months);
-	// createMonthView(data);
-	// createGendersView(data);
-	createMonthView(GLOBAL.data);
+	createMonthsView(data);
 	createGendersView(data);
 	createEduView(data);
     });
@@ -80,32 +77,50 @@ function run () {
     });
     return total;
 }
-   
 
-function sumTotalByEduGenderMonths (data, e,g,m){
+function sumTotalByGender (data,g)  {
+    return sumTotal(data,
+        function(r) { return r.gender===g; });
+}
+
+function sumTotalByEdu (data, e){
+  return sumTotal(data, 
+    function(r){ return r.education === e 
+              ;});
+}
+
+function sumTotalByMonth (data, m)  {
+    return sumTotal(data,
+        function(r) { return r.month===m; });
+}
+
+function sumTotalByEduGender(data,e,g){
+  return sumTotal(data, 
+    function(r){ return r.education === e &&
+              r.gender===g;
+              });
+}
+
+function sumTotalByEduMonth (data, e,m){
+  return sumTotal(data, 
+    function(r){ return r.education === e &&
+              r.month === m;});
+}
+
+function sumTotalByGenderMonth (data, g,m){
+  return sumTotal(data, 
+    function(r){ return r.gender === g &&
+              r.month === m;});
+}
+
+function sumTotalByEduGenderMonth (data, e,g,m){
 	return sumTotal(data, 
 		function(r){ return r.education === e &&
 							r.gender === g &&
 							r.month === m;});
 }
 
-function sumTotalByEdu (data, e){
-	return sumTotal(data, 
-		function(r){ return r.education === e 
-							;});
-}
 
-function sumTotalByEduMonth (data, e,m){
-	return sumTotal(data, 
-		function(r){ return r.education === e &&
-							r.month === m;});
-}
-
-function sumTotalByGenderMonth (data, g,m){
-	return sumTotal(data, 
-		function(r){ return r.gender === g &&
-							r.month === m;});
-}
 
 
 /* 
@@ -113,23 +128,118 @@ function sumTotalByGenderMonth (data, g,m){
  * of the data
  *
  */
-function createMonthView (data) {
-
-   //Add create MonthView
-
+function createMonthsView(data){
+  console.log("createMonthsView")
+    updateMonthsView(data);
 }
 
-function updateMonthView (data) {
+function updateMonthsView(data, gender, edu){
+  console.log("updateMonthsView");
+    var month =data.months;
+    var data = data.data;
+    var total_month = [];
+    var row_val = 0;
+    var col_val = 0;
+    var month_list = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O","N","D"];
 
-    // Add update MonthView
+    if (typeof gender !== "undefined") {
+      for(i = 0; i <= month.length-1; i++){
+        if (i%3 == 0)
+          {row_val += 1;
+          col_val = 0;}
+        else
+          {col_val += 1;
+          }
+        total_month.push({value:sumTotalByGenderMonth(data, gender, month[i]), row:row_val, col:col_val, month:month_list[i], sex:gender});
+        // console.log(sumTotalByGenderMonth(data, gender, month[i]));
+      }
+     } 
+     else if (typeof edu !== "undefined"){
+      for(i = 0; i <= month.length-1; i++){
+        if (i%3 == 0)
+          {row_val += 1;
+          col_val = 0;}
+        else
+          {col_val += 1;
+          }
+        total_month.push({value:sumTotalByEduMonth(data, edu, month[i]), row:row_val, col:col_val, month:month_list[i], sex:gender});
+        // console.log(sumTotalByGenderMonth(data, gender, month[i]));
+      }
+     } 
+    else {
+        for(i = 0; i <= month.length-1; i++){
+          if (i %3 ==0)
+            {row_val += 1;
+            col_val = 0;}
+          else
+            {col_val += 1;}
+          total_month.push({value:sumTotalByMonth(data, month[i]),row:row_val, col:col_val, month:month_list[i]});
+          
+        }
+    };
+    
+  console.log(total_month);
 
-}
+//height of each row in the heatmap
+//width of each column in the heatmap
+  var month_values = [];
+  for(i = 0; i< total_month.length; i++)
+  {
+    month_values.push(total_month[i].value)
+    //console.log(total_month[i].value);
+  }
+
+  var gridSize = 76,
+      h = gridSize,
+      w = gridSize,
+      rectPadding = 10;
+
+    var colorLow = '#70C062', colorMed = '#698267', colorHigh = '#000000';
+
+  var margin = {top: 20, right: 20, bottom: 20, left: 20},
+      width = 300,
+      height = 500;
+
+
+
+  var colorScale = d3.scale.linear()
+       .domain([Math.min.apply(Math,month_values), (Math.max.apply(Math,month_values)+Math.min.apply(Math,month_values))/2, Math.max.apply(Math,month_values)])
+       .range([colorLow, colorMed, colorHigh]);
+
+  var svg = d3.select("#viz-months");
+
+  var g = svg.selectAll("g")
+    .data(total_month)
+    .enter()
+    .append("g");
+    
+  var heatMap = g.append("rect");
+
+    heatMap.attr("x", function(d) { return d.col * h; })
+    .attr("y", function(d) { return d.row * w; })
+    .attr("width", function(d) { return w; })
+    .attr("height", function(d) { return h; });
+    
+  g.append("text")
+       .text(function(d) { return String(d.month); })
+      .attr("x", function(d) { return d.col * h +gridSize/2; })
+      .attr("y", function(d) { return d.row * w +gridSize/2; })
+       .style("text-anchor", "middle")
+       .style("fill","white")
+       .style("font-family","sans-serif")
+      .style("font-weight","bold")
+      .style("font-size","18px");
+
+  heatMap.transition()
+  .style("fill", function(d) { return colorScale(d.value); });
+
+  }   
 
 function createEduView (data) {
 
    var svg = d3.select("#viz-education");
 
-    svg.append("text")
+  svg.append("text")
 	.attr("x",+svg.attr("width")/2)
 	.attr("y",20)
 	.attr("dy","0.35em")
@@ -139,12 +249,13 @@ function createEduView (data) {
 	.text("Education");
 
 
-    updateEduView(data);
+  updateEduView(data);
 
 }
 
 function updateEduView (data, gender, month) {
 
+  console.log("update edu received", gender);
    var svg = d3.select("#viz-education")
 
    var height= svg.attr("height")
@@ -156,14 +267,15 @@ function updateEduView (data, gender, month) {
 
    //Add update MonthView
    var educations = data.educations;
+   // console.log(educations)
    var data = data.data;
    var r = svg.attr("height") / 2.5;
 
    
-   if (typeof cause !== "undefined" || typeof month !== "undefined") {
+   if (typeof gender !== "undefined") {
 	var d = educations.map(function(e) {
 	    return {edu:e,
-		    value:sumTotalByEduGenderMonth(data, e, gender, month)};
+		    value:sumTotalByEduGender(data, e, gender)};
 	});
     } else {
 	var d = educations.map(function(e) {
@@ -176,6 +288,7 @@ function updateEduView (data, gender, month) {
    return d3.ascending(x.edu, y.edu);
 	});
 
+   // console.log(d);
    var color = d3.scale.category20();
    // Using d3 layout
    var pie = d3.layout.pie()
@@ -189,6 +302,7 @@ function updateEduView (data, gender, month) {
   
    var text;
    var stroke; 
+
    var g = svg.selectAll("g.arc")
    .data(pie(d))
    .enter()
@@ -201,19 +315,27 @@ function updateEduView (data, gender, month) {
    .attr("stroke-width", 0.5)
    .each(function(d) { this._current = d; })
    .attr("fill", function(d, i) { return color(i); })
-   .attr("d",arc)
-   .on("mouseenter", function(d,i){
-      console.log(d,i);
-      console.log(EDUCATION[i]);
+   .attr("d",arc);
+
+    g.on("mouseenter",function (d,i) {  
+    d3.select(this).select("path").style("opacity", 0.5);
+     
       text = g.append("text")
      .attr("dy", ".35em")
      .style("font-family","fantasy")
      .attr("text-anchor", "middle")
      .text(EDUCATION[i])
      .style("fill","black");
-   })
-   .on("mouseout", function(d) {
-               text.remove();
+     updateGendersView(GLOBAL.data,i);
+     console.log("should update gender sent");
+     // console.log(EDUCATION[i],i);
+  // updateMonthsView(GLOBAL.data,GLOBAL.data.genders[i]);
+    });
+
+    g.on("mouseout", function(d) {
+    d3.select(this).select("path").style("opacity", 1);
+    updateGendersView(GLOBAL.data);
+    text.remove();
     });
 
   //Update Code
@@ -221,33 +343,9 @@ function updateEduView (data, gender, month) {
    g.select("path").transition()
    .duration(500)
    .attrTween("d", arcChange);
-  
-   //next plan. Add them into elementary together, make the label pretty, and make it animated everytime it's updated.
-
-   // var path = sel.selectAll("path")
-   // .data(pie(d))
-   // .enter()
-   // .append("path");
-
-   // path.transition()
-   // .duration(500)
-   // .attr("fill", function(d, i) { return color(i); })
-   // .attr("d",arc)
-   // .each(function(d) { this._current = d; });
-
-   // path.append("text")
-   // .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
-   // .text(function(d,i){return EDUCATION[i];})
-   // .style("fill","white");
-
-
-   // function pieupdate(){
-   // 	path.data(pie(d))
-   // 	path.transition().duration(750).attrTween("d", arcTween);
-   // }
 
    function arcChange(a) {
-    console.log('arcChange');
+    // console.log('arcChange');
    var i = d3.interpolate(this._current, a);
    this._current = i(0);
    return function(t) {
@@ -266,118 +364,104 @@ function moveToFront (node) {
     parent.appendChild(node);
 }
     
+function updateGendersView (data,edu) { 
 
-// function updateGendersView (data,cause) { 
+    console.log("update gender received");
+    var genders = data.genders;
+    // var month = data.months;
+    var data = data.data;
 
-//     var genders = data.genders;
-//     var data = data.data;
+    total_genders = [];
+    var totalnum  =0;
 
-//     console.log(data.months);
-//     // if a cause is supplied, then filter by that cause
-//     // otherwise, show all causes
+    if (typeof edu !== "undefined") {
+      for (var i = 0; i < 2; i++) {
+        total_genders.push({value:sumTotalByEduGender(data, edu, genders[i]),sex:genders[i]});
+      }} 
+  else {
+    for (var i = 0; i < 2; i++) {
+      total_genders.push({value:sumTotalByGender(data, genders[i]), sex:genders[i]});}
+      };
 
-//     if (typeof cause !== "undefined") {
-// 	var d = genders.map(function(g) {
-// 	    return {gender:g,
-// 		    value:sumTotalByCauseGenderYear(data,cause,g,2013)};
-// 	});
-//     } else {
-// 	var d = genders.map(function(g) {
-// 	    return {gender:g,
-// 		    value:sumTotalByGenderYear(data,g,2013)};
-// 	});
-//     }	
+    var totalnum  =0;
+    for (var i =0; i<2; i++){
+      totalnum +=total_genders[i].value;
+    }
 
-//     var bubbles = d3.layout.pack()
-// 	.sort(function(a,b) { return d3.ascending(a.gender,b.gender); })
-// 	.size([500,250])  // from svg size
-// 	.padding(10);
+    console.log("total genders: ", total_genders, "total:", totalnum);
+    var svg = d3.select("#viz-genders");
 
-//     console.log(bubbles.nodes({children:d}));
+    var height = svg.attr("height");
+    var width = svg.attr("width");
 
-//     var svg = d3.select("#viz-genders");
+    var margin = 50;
+    var chartHeight = height - 2*margin;
+    var chartWidth = width - 2*margin;
+    var padding = 5; 
+    var barWidth= chartWidth/total_genders.length - padding;
 
-//     /* svg.selectAll("*").remove(); */
-
-//     var g = svg.selectAll("g")
-// 	.data(bubbles.nodes({children:d})
-// 	      .filter(function(d) { return !d.children; }),
-// 	      function(d) { return d.gender; })
-// 	.enter()
-// 	.append("g")
-// 	.attr("transform","translate(0,50)");
+    var g = svg.selectAll('g')
+      .data(total_genders)
+      .enter()
+      .append('g');
     
-//     g.append("circle")
-// 	.attr("cx",function(d) { return d.x; })
-// 	.attr("cy",function(d) { return d.y; })
-// 	.attr("r",0)
-// 	.style("fill","blue")
-// 	.style("stroke","none");
+    g.append("rect")
+      .attr('x', function(d, i){return margin+i*chartWidth/total_genders.length;})
+      .attr('width', barWidth)
+      .attr('fill', "#698267");
 
-//     g.append("text")
-// 	.attr("x",function(d) { return d.x; })
-// 	.attr("y",function(d) { return d.y; })
-// 	.attr("dy","0.35em")
-// 	.style("text-anchor","middle")
-// 	.style("font-weight","bold")
-// 	.style("fill","white")
+    g.append("text")
+    .attr("x",function(d, i){return margin+barWidth/2+i*chartWidth/total_genders.length;})
+    .attr("dy","0.3em")
+    .style("text-anchor","middle")
+    .style("font-family","fantasy")
+    .style("font-weight","bold")
+    .style("font-size","12px")
+    .style("fill", "white")
+    
+    g = svg.selectAll("g");
+    g.select("rect").transition()
+    .attr('height', function(d){return d.value*100.0/totalnum;})
+    .attr("y",function(d) { return chartHeight- d.value*100.0/totalnum;});
+ 
+    g.select("text").transition()
+    .attr("y",function(d) {return chartHeight- d.value*100.0/totalnum +10;})
+    .text(function(d){return d.sex + " " + Math.round(d.value*100.0/totalnum) + "%";})
+    // .text(function(d){return d.sex});
 
-//     g.on("mouseenter",function (d,i) {  
-// 	d3.select(this).select("circle").style("fill","red");
-// 	updateCausesView(GLOBAL.data,d.gender);
-//     });
+    g.on("mouseenter", function(d,i){
+      d3.select(this).select("rect").style("fill","#70C062");
+     updateEduView(GLOBAL.data,d.sex);
+     updateMonthsView(GLOBAL.data,d.sex);
+     console.log("update months sent", d.sex);
+   });
 
-//     g.on("mouseleave",function() { 
-// 	d3.select(this).select("circle").style("fill","blue");
-// 	updateCausesView(GLOBAL.data);
-//     });
+   g.on("mouseout", function(d) {
+    d3.select(this).select("rect").style("fill","#698267");
+    updateEduView(GLOBAL.data);
+    updateMonthsView(GLOBAL.data);
+    });
 
+   }
+   
 
-//     // update
-//     g = svg.selectAll("g");
-//     g.select("circle").transition()
-// 	.attr("cx",function(d) { return d.x; })
-// 	.attr("cy",function(d) { return d.y; })
-//     	.attr("r",function(d) { return d.r; })
-//     g.select("text").transition()
-// 	.attr("x",function(d) { return d.x; })
-// 	.attr("y",function(d) { return d.y; })
-// 	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
-// }
+function createGendersView (data) {
 
+    var svg = d3.select("#viz-genders");
 
+    svg.append("text")
+  .attr("x",+svg.attr("width")/2)
+  .attr("y",20)
+  .attr("dy","0.35em")
+  .style("text-anchor","middle")
+  .style("font-family","fantasy")
+  .style("font-size","20pt")
+  .text("Genders");
 
-// function createGendersView (data) {
+    updateGendersView(data);
 
-//     var svg = d3.select("#viz-genders");
+}
 
-//     svg.append("text")
-// 	.attr("x",+svg.attr("width")/2)
-// 	.attr("y",20)
-// 	.attr("dy","0.35em")
-// 	.style("text-anchor","middle")
-// 	.style("font-family","sans-serif")
-// 	.style("font-size","20pt")
-// 	.text("Genders");
-
-//     updateGendersView(data);
-
-// }
-
-
-/*
- * Convert a cause code to text
- *
- */
-
-// function causeText (i) { 
-//     var index = CAUSE[i].indexOf("(");
-//     if (index < 0) { 
-// 	return CAUSE[i];
-//     } else {
-// 	return CAUSE[i].slice(0,index-1);
-//     }
-// }
 
 var EDUCATION = {
 	"0": "No formal education",
@@ -402,55 +486,6 @@ var EDUCATION = {
 	"": "Not on certificate"
 }
 
-// var CAUSE = {
-//     "1":"Tuberculosis (A16-A19)",
-//     "2":"Syphilis (A50-A53)",
-//     "3":"Human immunodeficiency virus (HIV) disease (B20-B24)",
-//     "4":"Malignant neoplasms (C00-C97)",
-//     "5":"Malignant neoplasm of stomach (C16)",
-//     "6":"Malignant neoplasms of colon, rectum and anus (C18-C21)",
-//     "7":"Malignant neoplasm of pancreas (C25)",
-//     "8":"Malignant neoplasms of trachea, bronchus and lung (C33-C34)",
-//     "9":"Malignant neoplasm of breast (C50)",
-//     "10":"Malignant neoplasms of cervix uteri, corpus uteri and ovary (C53-C56)",
-//     "11":"Malignant neoplasm of prostate (C61)",
-//     "12":"Malignant neoplasms of urinary tract (C64-C68)",
-//     "13":"Non-Hodgkin's lymphoma (C82-C85)",
-//     "14":"Leukemia (C91-C95)",
-//     "15":"Other malignant neoplasms (C00-C15,C17,C22-C24,C26-C32,C37-C49,C51-C52, C57-C60,C62-C63,C69-C81,C88,C90,C96-C97)",
-//     "16":"Diabetes mellitus (E10-E14)",
-//     "17":"Alzheimer's disease (G30)",
-//     "18":"Major cardiovascular diseases (I00-I78)",
-//     "19":"Diseases of heart (I00-I09,I11,I13,I20-I51)",
-//     "20":"Hypertensive heart disease with or without renal disease (I11,I13)",
-//     "21":"Ischemic heart diseases (I20-I25)",
-//     "22":"Other diseases of heart (I00-I09,I26-I51)",
-//     "23":"Essential (primary) hypertension and hypertensive renal disease (I10,I12,I15)",
-//     "24":"Cerebrovascular diseases (I60-I69)",
-//     "25":"Atherosclerosis (I70)",
-//     "26":"Other diseases of circulatory system (I71-I78)",
-//     "27":"Influenza and pneumonia (J09-J18)",
-//     "28":"Chronic lower respiratory diseases (J40-J47)",
-//     "29":"Peptic ulcer (K25-K28)",
-//     "30":"Chronic liver disease and cirrhosis (K70,K73-K74)",
-//     "31":"Nephritis, nephrotic syndrome, and nephrosis (N00-N07,N17-N19,N25-N27)",
-//     "32":"Pregnancy, childbirth and the puerperium (O00-O99)",
-//     "33":"Certain conditions originating in the perinatal period (P00-P96)",
-//     "34":"Congenital malformations, deformations and chromosomal abnormalities (Q00-Q99)",
-//     "35":"Sudden infant death syndrome (R95)",
-//     "36":"Symptoms, signs and abnormal clinical and laboratory findings, not  elsewhere classified (excluding Sudden infant death syndrome) (R00-R94,R96-R99)",
-//     "37":"All other diseases (Residual) (A00-A09,A20-A49,A54-B19,B25-B99,D00-E07, E15-G25,G31-H93,I80-J06,J20-J39,J60-K22,K29-K66,K71-K72, K75-M99,N10-N15,N20-N23,N28-N98,U04)",
-//     "38":"Motor vehicle accidents (V02-V04,V09.0,V12-V14,V19.0-V19.2,V19.4-V19.6, V20-V79,V80.3-V80.5,V81.0-V81.1,V82.0-V82.1,V83-V86,V87.0-V87.8, V88.0-V88.8,V89.0,V89.2)",
-//     "39":"All other and unspecified accidents and adverse effects (V01,V05-V06,V09.1,V09.3-V09.9,V10-V11,V15-V18,V19.3,V19.8-V19.9, V80.0-V80.2,V80.6-V80.9,V81.2-V81.9,V82.2-V82.9,V87.9,V88.9,V89.1, V89.3,V89.9,V90-X59,Y40-Y86,Y88)",
-//     "40":"Intentional self-harm (suicide) (*U03,X60-X84,Y87.0)",
-//     "41":"Assault (homicide) (*U01-*U02,X85-Y09,Y87.1)",
-//     "42":"All other external causes (Y10-Y36,Y87.2,Y89)"
-// }
-    
-/*
- * Pulls the data
- * 
- */
 
 function getData (f) {
 
