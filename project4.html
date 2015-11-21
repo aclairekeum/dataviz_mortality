@@ -11,181 +11,156 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 
     <style>
+    h1 {
+    color:blue;
+    font-family: fantasy;
+    font-size:300%;
+    }
+
     </style>
 
   </head>
   
   <body>
-
+    <h1>Number of death in year of 2003, 2008, and 2013</h1>
 
     <div>
-      <svg id="viz-months" width="300" height="500" style=" display:inline-block;">
+      <svg id="viz-months" width="500" height="500" style=" display:inline-block;">
       </svg>
-      <svg id="viz-genders" width="300" height="500" style=" display:inline-block;">
+      <svg id="viz-genders" width="300" height="300" style=" display:inline-block;">
       </svg>
       <svg id="viz-education" width="500" height="500" style=" display:inline-block;">
       </svg>
     </div>
 
     <script>
-
-
 /*
  * Annabel Consilvio and Claire Keum
  * 
  */
-
-
 // Call run when the page finishes loading
       
 window.addEventListener("load",run);
-
-
 var GLOBAL = {};
-
 function run () {
   var svg = d3.selectAll("svg");
   svg.append("text")
-	.attr("class","loading")
-	.attr("x",+svg.attr("width")/2)
-	.attr("y",+svg.attr("height")/2)
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.text("loading data...");
-
+  .attr("class","loading")
+  .attr("x",+svg.attr("width")/2)
+  .attr("y",+svg.attr("height")/2)
+  .attr("dy","0.35em")
+  .style("text-anchor","middle")
+  .text("loading data...");
   getData(function(data) {
-	GLOBAL.data = data;
-	createMonthsView(data);
-	createGendersView(data);
-	createEduView(data);
+  GLOBAL.data = data;
+  createMonthsView(data);
+  createGendersView(data);
+  createEduView(data);
     });
 }
-
-
 /*
  * Functions for summing up totals from the
  * data
  * 
  */
-
  function sumTotal (data, pred) {
     var total = 0;
     data.forEach(function(r) {
-	if (pred(r)) { 
-	    total += +r["total"]
-	}
+  if (pred(r)) { 
+      total += +r["total"]
+  }
     });
     return total;
 }
-
 function sumTotalByGender (data,g)  {
     return sumTotal(data,
         function(r) { return r.gender===g; });
 }
-
 function sumTotalByEdu (data, e){
   return sumTotal(data, 
     function(r){ return r.education === e 
               ;});
 }
-
 function sumTotalByMonth (data, m)  {
     return sumTotal(data,
         function(r) { return r.month===m; });
 }
-
 function sumTotalByEduGender(data,e,g){
   return sumTotal(data, 
     function(r){ return r.education === e &&
               r.gender===g;
               });
 }
-
 function sumTotalByEduMonth (data, e,m){
   return sumTotal(data, 
     function(r){ return r.education === e &&
               r.month === m;});
 }
-
 function sumTotalByGenderMonth (data, g,m){
   return sumTotal(data, 
     function(r){ return r.gender === g &&
               r.month === m;});
 }
-
 function sumTotalByEduGenderMonth (data, e,g,m){
-	return sumTotal(data, 
-		function(r){ return r.education === e &&
-							r.gender === g &&
-							r.month === m;});
+  return sumTotal(data, 
+    function(r){ return r.education === e &&
+              r.gender === g &&
+              r.month === m;});
 }
-
-
-
-
 /* 
  * Create a simple visual representation
  * of the data
  *
  */
 function createMonthsView(data){
-  //console.log("createMonthsView")
  var svg = d3.select("#viz-months");
-
   svg.append("text")
-	.attr("x",+svg.attr("width")/2)
-	.attr("y",20)
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-family","fantasy")
-	.style("font-size","20pt")
-	.text("Months of Death");
-
+  .attr("x",+svg.attr("width")/2)
+  .attr("y",20)
+  .attr("dy","0.35em")
+  .style("text-anchor","middle")
+  .style("font-family","fantasy")
+  .style("font-size","20pt")
+  .text("Months of Death");
     updateMonthsView(data);
 }
 
 function updateMonthsView(data, gender, edu){
-  //console.log("updateMonthsView");
-    var month =data.months;
-    // console.log(month);
-    var data = data.data;
-    var total_month = [];
-    var row_val = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3];
-    var col_val = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1 , 2];
-    var month_list = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O","N","D"];
+  var month =data.months;
+  var data = data.data;
+  var total_month = [];
+  var row_val = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3];
+  var col_val = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1 , 2];
+  var month_list = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O","N","D"];
 
    if (typeof gender !== "undefined") {
-	var d = month.map(function(m, i) {
-	    return {month:m,
-		    value:sumTotalByGenderMonth(data, gender, m), row:row_val[i], col:col_val[i]};
-	});
+  var d = month.map(function(m, i) {
+      return {month:m,
+        value:sumTotalByGenderMonth(data, gender, m), row:row_val[i], col:col_val[i]};
+  });
     }
-	else if (typeof edu !== "undefined") {   
-	var d = month.map(function(m,i) {
-	    return {month:m,
-		    value:sumTotalByEduMonth(data, edu, m), row:row_val[i], col:col_val[i]};
-	});
+  else if (typeof edu !== "undefined") {   
+  var d = month.map(function(m,i) {
+      return {month:m,
+        value:sumTotalByEduMonth(data, edu, m), row:row_val[i], col:col_val[i]};
+  });
     }
      else {
-	var d = month.map(function(m, i) {
-	    return {month:m,
-		    value:sumTotalByMonth(data, m), row:row_val[i], col:col_val[i]};
-	});
+  var d = month.map(function(m, i) {
+      return {month:m,
+        value:sumTotalByMonth(data, m), row:row_val[i], col:col_val[i]};
+  });
     }
-
   var month_values = [];
   for(i = 0; i< d.length; i++)
   {
     month_values.push(d[i].value)
   }
-
   var gridSize = 76,
       h = gridSize,
       w = gridSize,
       rectPadding = 10;
-
     var colorLow = '#70C062', colorMed = '#FFDF5A', colorHigh = '#FF4D4D'; 
-
   var margin = {top: 20, right: 20, bottom: 20, left: 20},
       width = 300,
       height = 500;
@@ -195,7 +170,6 @@ function updateMonthsView(data, gender, edu){
        .range([colorLow, colorMed, colorHigh]);
 
   var svg = d3.select("#viz-months");
-
   var g = svg.selectAll("g")
     .data(d)
     .enter()
@@ -234,72 +208,87 @@ function updateMonthsView(data, gender, edu){
   updateEduView(GLOBAL.data);
   });
 
-    g = svg.selectAll("g");
-    g.select("rect").transition().attr('fill', function(d){return colorScale(d.value);});
+  g = svg.selectAll("g");
+  g.select("rect").transition().attr('fill', function(d){return colorScale(d.value);});
 
+ // var legendbar = [];
+ var legend = svg.selectAll(".legend")
+    .data(colorScale.ticks(16).slice(4).reverse())
+  .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) { return "translate(" + (width-30) + "," + (120 + i * 20) + ")"; });
+
+legend.append("rect")
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", colorScale);
+
+legend.append("text")
+    .attr("x", 26)
+    .attr("y", 10)
+    .attr("dy", ".35em")
+    .style("font-family","fantasy")
+    .text(String);
+
+svg.append("text")
+    .attr("class", "label")
+    .attr("x", width + 20)
+    .attr("y", 100)
+    .attr("dy", ".35em")
+    .style("font-family","fantasy")
+    .text("Count");
 
   }   
 
 function createEduView (data) {
-
    var svg = d3.select("#viz-education");
-
   svg.append("text")
-	.attr("x",+svg.attr("width")/2)
-	.attr("y",20)
-	.attr("dy","0.35em")
-	.style("text-anchor","middle")
-	.style("font-family","fantasy")
-	.style("font-size","20pt")
-	.text("Education");
-
-
+  .attr("x",+svg.attr("width")/2)
+  .attr("y",20)
+  .attr("dy","0.35em")
+  .style("text-anchor","middle")
+  .style("font-family","fantasy")
+  .style("font-size","20pt")
+  .text("Education");
   updateEduView(data);
-
 }
-
 function updateEduView (data, gender, month) {
-
  // console.log("update edu received", gender);
    var svg = d3.select("#viz-education")
-
    var height= svg.attr("height")
    var width = svg.attr("width")
    
    sel = svg
    .append("g")
    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
    //Add update MonthView
    var educations = data.educations;
    // console.log(educations)
    var data = data.data;
    var r = svg.attr("height") / 2.5;
-
    
    if (typeof gender !== "undefined") {
-	var d = educations.map(function(e) {
-	    return {edu:e,
-		    value:sumTotalByEduGender(data, e, gender)};
-	});
+  var d = educations.map(function(e) {
+      return {edu:e,
+        value:sumTotalByEduGender(data, e, gender)};
+  });
     }
-	else if (typeof month !== "undefined") {
-	var d = educations.map(function(e) {
-	    return {edu:e,
-		    value:sumTotalByEduMonth(data, e, month)};
-	});
+  else if (typeof month !== "undefined") {
+  var d = educations.map(function(e) {
+      return {edu:e,
+        value:sumTotalByEduMonth(data, e, month)};
+  });
     }
      else {
-	var d = educations.map(function(e) {
-	    return {edu:e,
-		    value:sumTotalByEdu(data, e)};
-	});
-    }	
+  var d = educations.map(function(e) {
+      return {edu:e,
+        value:sumTotalByEdu(data, e)};
+  });
+    } 
    
    d.sort(function(x, y){
    return d3.ascending(x.edu, y.edu);
-	});
-
+  });
    // console.log(d);
    var color = d3.scale.category20();
    // Using d3 layout
@@ -307,28 +296,24 @@ function updateEduView (data, gender, month) {
    .value(function(d){return d.value;})
    .sort(function(a,b) {return d3.ascending(a.edu,b.edu); });
    // .sort(function(a,b) { return d3.ascending(a.edu,b.edu);} );
-
    var arc = d3.svg.arc()
    .outerRadius(r)
    .innerRadius(70);
   
    var text;
    var stroke; 
-
    var g = svg.selectAll("g.arc")
    .data(pie(d))
    .enter()
    .append("g")
    .attr("class","arc")
    .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
-
    g.append("path")
    .attr("stroke", "white")
    .attr("stroke-width", 0.5)
    .each(function(d) { this._current = d; })
    .attr("fill", function(d, i) { return color(i); })
    .attr("d",arc);
-
     g.on("mouseenter",function (d,i) {  
     d3.select(this).select("path").style("opacity", 0.5);
      
@@ -342,20 +327,17 @@ function updateEduView (data, gender, month) {
    updateMonthsView(GLOBAL.data, undefined, i)
    //console.log("should update gender sent");
     });
-
     g.on("mouseout", function(d) {
     d3.select(this).select("path").style("opacity", 1);
     updateGendersView(GLOBAL.data);
     updateMonthsView(GLOBAL.data)
     text.remove();
     });
-
   //Update Code
    g = svg.selectAll("g.arc");
    g.select("path").transition()
    .duration(500)
    .attrTween("d", arcChange);
-
    function arcChange(a) {
     // console.log('arcChange');
    var i = d3.interpolate(this._current, a);
@@ -364,9 +346,7 @@ function updateEduView (data, gender, month) {
    return arc(i(t));
    }
   }
-
 }
-
 /*
  * Move a DOM element to the front 
  *
@@ -377,14 +357,11 @@ function moveToFront (node) {
 }
     
 function updateGendersView (data,edu,month) { 
-
    // console.log("update gender received"+"month"+month);
     var genders = data.genders;
     var data = data.data;
-
     total_genders = [];
     var totalnum  =0;
-
     if (typeof edu !== "undefined") {
       for (var i = 0; i < 2; i++) {
         total_genders.push({value:sumTotalByEduGender(data, edu, genders[i]),sex:genders[i]});
@@ -398,24 +375,19 @@ function updateGendersView (data,edu,month) {
     for (var i = 0; i < 2; i++) {
       total_genders.push({value:sumTotalByGender(data, genders[i]), sex:genders[i]});}
       };
-
     var totalnum  =0;
     for (var i =0; i<2; i++){
       totalnum +=total_genders[i].value;
     }
-
     //console.log("total genders: ", total_genders, "total:", totalnum);
     var svg = d3.select("#viz-genders");
-
     var height = svg.attr("height");
     var width = svg.attr("width");
-
     var margin = 50;
     var chartHeight = height - 2*margin;
     var chartWidth = width - 2*margin;
     var padding = 5; 
     var barWidth= chartWidth/total_genders.length - padding;
-
     var g = svg.selectAll('g')
       .data(total_genders)
       .enter()
@@ -425,7 +397,6 @@ function updateGendersView (data,edu,month) {
       .attr('x', function(d, i){return margin+i*chartWidth/total_genders.length;})
       .attr('width', barWidth)
       .attr('fill', "#698267");
-
     g.append("text")
     .attr("x",function(d, i){return margin+barWidth/2+i*chartWidth/total_genders.length;})
     .attr("dy","0.3em")
@@ -444,27 +415,21 @@ function updateGendersView (data,edu,month) {
     .attr("y",function(d) {return chartHeight- d.value*100.0/totalnum +10;})
     .text(function(d){return d.sex + " " + Math.round(d.value*100.0/totalnum) + "%";})
     // .text(function(d){return d.sex});
-
     g.on("mouseenter", function(d,i){
       d3.select(this).select("rect").style("fill","#70C062");
      updateEduView(GLOBAL.data, d.sex, undefined);
      updateMonthsView(GLOBAL.data, d.sex, undefined);
      //console.log("update months sent", d.sex);
    });
-
    g.on("mouseout", function(d) {
     d3.select(this).select("rect").style("fill","#698267");
     updateEduView(GLOBAL.data);
     updateMonthsView(GLOBAL.data);
     });
-
    }
    
-
 function createGendersView (data) {
-
     var svg = d3.select("#viz-genders");
-
     svg.append("text")
   .attr("x",+svg.attr("width")/2)
   .attr("y",20)
@@ -473,48 +438,41 @@ function createGendersView (data) {
   .style("font-family","fantasy")
   .style("font-size","20pt")
   .text("Genders");
-
     updateGendersView(data);
-
 }
-
-
 var EDUCATION = {
-	"0": "No formal education",
-	"1": "1 Year(s) of elementary school",
-	"2": "2 Year(s) of elementary school",
-	"3": "3 Year(s) of elementary school",
-	"4": "4 Year(s) of elementary school",
-	"5": "5 Year(s) of elementary school",
-	"6": "6 Year(s) of elementary school",
-	"7": "7 Year(s) of elementary school",
-	"8": "8 Year(s) of elementary school",
-	"9": "1 year of high school",
-	"10": "2 years of high school",
-	"11": "3 years of high school",
-	"12": "4 years of high school",
-	"13": "1 year of college",
-	"14": "2 years of college",
-	"15": "3 years of college",
-	"16": "4 years of college",
-	"17": "5 or more years of college",
-	// "99": "Not stated",
-	"": "Not on certificate"
+  "0": "No formal education",
+  "1": "1 Year(s) of elementary school",
+  "2": "2 Year(s) of elementary school",
+  "3": "3 Year(s) of elementary school",
+  "4": "4 Year(s) of elementary school",
+  "5": "5 Year(s) of elementary school",
+  "6": "6 Year(s) of elementary school",
+  "7": "7 Year(s) of elementary school",
+  "8": "8 Year(s) of elementary school",
+  "9": "1 year of high school",
+  "10": "2 years of high school",
+  "11": "3 years of high school",
+  "12": "4 years of high school",
+  "13": "1 year of college",
+  "14": "2 years of college",
+  "15": "3 years of college",
+  "16": "4 years of college",
+  "17": "5 or more years of college",
+  // "99": "Not stated",
+  "": "Not on certificate"
 }
-
-
 function getData (f) {
-
     d3.json("data",function(error,data) {
-		 if (error) {
-		     d3.selectAll(".loading").remove();
-		     //console.log(error);
-		 } else {
-		     d3.selectAll(".loading").remove();
-		     //console.log(" data =", data);
-		     f(data);
-		 }
-	     });
+     if (error) {
+         d3.selectAll(".loading").remove();
+         //console.log(error);
+     } else {
+         d3.selectAll(".loading").remove();
+         //console.log(" data =", data);
+         f(data);
+     }
+       });
 }
       
     </script>
