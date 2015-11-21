@@ -159,7 +159,6 @@ function updateMonthsView(data, gender){
 	    		{col_val += 1;
 	    		}
     		total_month.push({value:sumTotalByGenderMonth(data, gender, month[i]), row:row_val, col:col_val, month:month_list[i], sex:gender});
-    		console.log(sumTotalByGenderMonth(data, gender, month[i]));
     	}
 	} 
 	else {
@@ -169,7 +168,7 @@ function updateMonthsView(data, gender){
 	    		col_val = 0;}
 	    	else
 	    		{col_val += 1;}
-    		total_month.push({value:sumTotalByMonth(data, month[i]),row:row_val, col:col_val, month:month_list[i]});
+    		total_month.push({value:sumTotalByMonth(data, month[i]),row:row_val, col:col_val, month:month_list[i], sex:gender});
     		
     	}
 	};
@@ -229,6 +228,16 @@ var heatMap = g.append("rect")
 		.style("font-weight","bold")
 		.style("font-size","18px");
 
+    g.on("mouseenter",function (d,i) {  
+	d3.select(this).select("text").style("fill","#000000");
+	updateGendersView(GLOBAL.data,GLOBAL.data.months[i]);
+    });
+
+    g.on("mouseleave",function() { 
+	d3.select(this).select("text").style("fill","#ffffff");
+	updateGendersView(GLOBAL.data);
+    });
+
 	}   
      
 
@@ -248,9 +257,10 @@ function moveToFront (node) {
     
 
 function updateGendersView (data,month) { 
-
+	console.log(month);
+	var month_list = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O","N","D"];
     var genders = data.genders;
-    var month = data.months;
+    //var month = data.months;
     var data = data.data;
 
     // if a cause is supplied, then filter by that cause
@@ -260,14 +270,14 @@ function updateGendersView (data,month) {
 
     if (typeof month !== "undefined") {
     	for (var i = 0; i < 2; i++) {
-    		total_genders.push({value:sumTotalByGender(data, genders[i]),sex:genders[i]});
+    		total_genders.push({value:sumTotalByGenderMonth(data, genders[i], month),sex:genders[i], month:month_list[i]});
     	}} 
 	else {
 		for (var i = 0; i < 2; i++) {
-	    total_genders.push({value:sumTotalByGenderMonth(data, genders[i], month), sex:genders[i]});}
+	    total_genders.push({value:sumTotalByGender(data, genders[i]), sex:genders[i], month:month});}
     	};
 
-    console.log(total_genders);
+    console.log(total_genders, "total_genders");
         var svg = d3.select("#viz-genders");
 
     var height = svg.attr("height");
@@ -343,16 +353,13 @@ function updateGendersView (data,month) {
     });
 
 
-    // update
- //    g = svg.selectAll("g");
- //    g.select("circle").transition()
-	// .attr("cx",function(d) { return d.x; })
-	// .attr("cy",function(d) { return d.y; })
- //    	.attr("r",function(d) { return d.r; })
- //    g.select("text").transition()
-	// .attr("x",function(d) { return d.x; })
-	// .attr("y",function(d) { return d.y; })
-	// .text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
+    //update
+    g.select("rect").transition()
+    	.attr("height",function(d) { return d.value; })
+    g.select("text").transition()
+	.attr("x",function(d) { return d.x; })
+	.attr("y",function(d) { return d.y; })
+	.text(function(d) { return d.value > 0 ? d.gender+":"+d.value : "";});
 
 
 }
