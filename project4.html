@@ -218,7 +218,9 @@ function updateMonthsView(data, gender, edu){
     heatMap.attr("x", function(d) { return d.col * h; })
     .attr("y", function(d) { return d.row * w; })
     .attr("width", function(d) { return w; })
-    .attr("height", function(d) { return h; });
+    .attr("height", function(d) { return h; })
+    .attr("stroke", "white")
+    .attr("stroke-width",0.5)
     
   g.append("text")
        .text(function(d) { return String(d.month); })
@@ -226,13 +228,14 @@ function updateMonthsView(data, gender, edu){
       .attr("y", function(d) { return d.row * w +gridSize/2; })
        .style("text-anchor", "middle")
        .style("fill","white")
-       .style("font-family","sans-serif")
+       .style("font-family","fantasy")
       .style("font-weight","bold")
       .style("font-size","18px");
 
+  g.data(total_month).enter();
+
   heatMap.transition()
   .style("fill", function(d) { return colorScale(d.value); });
-
   }   
 
 function createEduView (data) {
